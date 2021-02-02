@@ -959,30 +959,30 @@ def block_deepLeptonDense_elu(x,dropoutRate,active=True,batchnorm=False,batchmom
 #    
 #    return x
 #
-##DeepLepton Test Architecture for Split DNN for globalVars and pfCands+SV and concatenate both networks in final dense layers + elu activation function
-#def block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
-#    if active:
-#        x=  Dense(200, activation='elu',kernel_initializer='lecun_uniform', name='df_dense0')(x)
-#        if batchnorm:
-#            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm0')(x)
-#        x = Dropout(dropoutRate,name='df_dense_dropout0')(x)
-#        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense1')(x)
-#        if batchnorm:
-#            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm1')(x)
-#        x = Dropout(dropoutRate,name='df_dense_dropout1')(x)
-#        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense2')(x)
-#        if batchnorm:
-#            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm2')(x)
-#        x = Dropout(dropoutRate,name='df_dense_dropout2')(x)
-#        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense3')(x)
-#        if batchnorm:
-#            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm3')(x)
-#        x = Dropout(dropoutRate,name='df_dense_dropout3')(x)
-#    else:
-#        x= Dense(1,kernel_initializer='zeros',trainable=False,name='df_dense_off')(x)
-#    
-#    return x
-#
+#DeepLepton Test Architecture for Split DNN for globalVars and pfCands+SV and concatenate both networks in final dense layers + elu activation function
+def block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
+    if active:
+        x=  Dense(200, activation='elu',kernel_initializer='lecun_uniform', name='df_dense0')(x)
+        if batchnorm:
+            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm0')(x)
+        x = Dropout(dropoutRate,name='df_dense_dropout0')(x)
+        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense1')(x)
+        if batchnorm:
+            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm1')(x)
+        x = Dropout(dropoutRate,name='df_dense_dropout1')(x)
+        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense2')(x)
+        if batchnorm:
+            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm2')(x)
+        x = Dropout(dropoutRate,name='df_dense_dropout2')(x)
+        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense3')(x)
+        if batchnorm:
+            x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm3')(x)
+        x = Dropout(dropoutRate,name='df_dense_dropout3')(x)
+    else:
+        x= Dense(1,kernel_initializer='zeros',trainable=False,name='df_dense_off')(x)
+    
+    return x
+
 def block_deepLeptonDense_testSplit_elu_cands(x,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
     if active:
         x=  Dense(200, activation='elu',kernel_initializer='lecun_uniform', name='df_cands_dense0')(x)

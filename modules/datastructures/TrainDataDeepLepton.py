@@ -27,7 +27,6 @@ class TrainDataDeepLepton(TrainData):
         #setting DeepLepton specific defaults
         self.treename         = "tree"
         #self.undefTruth=['isUndefined']
-        self.referenceclass   = 'lep_isNonPromptId_Training'    # we want a constant mistagging rate!
         #self.red_classes      = ['cat_P', 'cat_NP', 'cat_F']
         #self.reduce_truth     = ['lep_isPromptId_Training', 'lep_isNonPromptId_Training', 'lep_isFakeId_Training']
         #self.class_weights    = [1.00, 1.00, 1.00]

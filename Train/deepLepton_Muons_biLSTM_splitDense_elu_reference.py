@@ -28,13 +28,23 @@ if newtraining:
     train.train_data.maxFilesOpen=25 #5
     
     print(train.keras_model.summary())
-    model,history = train.trainModel(nepochs=100, #3, #4 
-                                     batchsize=2048, #10000, #64, #512, #1024, #2048, #4096
-                                     stop_patience=300, 
-                                     lr_factor=0.5, 
-                                     lr_patience=5, 
-                                     lr_epsilon=0.00001, 
-                                     lr_cooldown=6, 
-                                     lr_minimum=0.00001, 
-                                     maxqsize=25
-                                     )
+    #model,history = train.trainModel(nepochs=100, #3, #4 
+    #                                 batchsize=2048, #10000, #64, #512, #1024, #2048, #4096
+    #                                 stop_patience=300, 
+    #                                 lr_factor=0.5, 
+    #                                 lr_patience=5, 
+    #                                 lr_epsilon=0.00001, 
+    #                                 lr_cooldown=6, 
+    #                                 lr_minimum=0.00001, 
+    #                                 #maxqsize=25,#FIXME
+    #                                 )
+
+    model,history = train.trainModel(nepochs=65, #sweet spot from looking at the testing plots 
+                                     batchsize=10000,
+                                     stop_patience=300,
+                                     lr_factor=0.5,
+                                     lr_patience=-1,
+                                     lr_epsilon=0.0001,
+                                     lr_cooldown=10,
+                                     lr_minimum=0.00001,
+                                     verbose=1,checkperiod=1)
