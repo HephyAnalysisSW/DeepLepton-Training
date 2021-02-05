@@ -4,18 +4,14 @@ from DeepJetCore.training.training_base import training_base
 import numpy as np
 import tensorflow as tf
 
+from models import *
 
 from keras.layers import Dense, Dropout, Flatten,Concatenate, Convolution2D, LSTM, Convolution1D, Conv2D, Bidirectional, MaxPooling1D, Activation, Lambda
 from keras.models import Model
 from keras.layers import BatchNormalization
 #from keras.layers.merge import Add, Multiply
 
-#import buildingBlocks
-#import block_deepLeptonConvolutions, block_deepLeptonDense, block_deepLeptonConvolutions_elu, block_deepLeptonConvolutions_selu, block_deepLeptonDense_selu, block_deepLeptonConvolutions_pooling, block_deepLeptonConvolutions_testSize, block_deepLeptonDense_testSize, block_deepLeptonDense_testSplit_sum, block_deepLeptonDense_testSplit_cands, block_deepLeptonDense_testSplit_global, block_deepLeptonDense_testSplit_selu_sum, block_deepLeptonDense_testSplit_selu_cands, block_deepLeptonDense_testSplit_selu_global, block_deepLeptonDense_testSplit_elu_sum, block_deepLeptonDense_testSplit_elu_cands, block_deepLeptonDense_testSplit_elu_global, block_deepLeptonConvolutions_Tim, block_deepLeptonDense_Tim, block_deepLeptonDense_testSplit_elu_sum_2017, block_deepLeptonDense_testSplit_elu_cands_2017, block_deepLeptonDense_testSplit_elu_global_2017, block_deepLeptonConvolutions_2017 #, block_SchwartzImage, block_deepFlavourBTVConvolutions
-
-import buildingBlocks 
-
-def model_deepLeptonReference_biLSTM_split_elu(Inputs,nclasses,nregclasses,dropoutRate=0.5,momentum=0.2):
+def model_deepLeptonReference_biLSTM_split_elu(Inputs,dropoutRate=0.5,momentum=0.2):
     """
     reference 1x1 convolutional model for 'deepLepton'
     with recurrent layers and batch normalisation
@@ -33,7 +29,7 @@ def model_deepLeptonReference_biLSTM_split_elu(Inputs,nclasses,nregclasses,dropo
     vtx    =     BatchNormalization(momentum=momentum,name='vtx_input_batchnorm')     (Inputs[6])
     #ptreginput = BatchNormalization(momentum=momentum,name='reg_input_batchnorm')     (Inputs[4])
     
-    npf, cpf, ppf, epf, mpf, vtx = buildingBlocks.block_deepLeptonConvolutions_elu(neutrals=npf,
+    npf, cpf, ppf, epf, mpf, vtx = block_deepLeptonConvolutions_elu(neutrals=npf,
                                                 charged=cpf,
                                                 photons=ppf,
                                                 electrons=epf,
@@ -73,13 +69,13 @@ def model_deepLeptonReference_biLSTM_split_elu(Inputs,nclasses,nregclasses,dropo
     xCands  = Concatenate()( [npf,cpf,ppf,epf,mpf,vtx])
     xGlobal = globalvars
     
-    xCands  = buildingBlocks.block_deepLeptonDense_testSplit_elu_cands(xCands,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
-    xGlobal = buildingBlocks.block_deepLeptonDense_testSplit_elu_global(xGlobal,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    xCands  = block_deepLeptonDense_testSplit_elu_cands(xCands,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    xGlobal = block_deepLeptonDense_testSplit_elu_global(xGlobal,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
     
     x       = Concatenate()( [xGlobal,xCands])
-    x       = buildingBlocks.block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    x       = block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
 
-    lepton_pred=Dense(nclasses, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
+    lepton_pred=Dense(3, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
     
     #reg = Concatenate()( [flavour_pred, ptreginput ] ) 
     
