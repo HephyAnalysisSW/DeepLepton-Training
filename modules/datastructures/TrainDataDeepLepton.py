@@ -85,7 +85,8 @@ class TrainDataDeepLepton(TrainData):
             weighter.setBinningAndClasses(
                 [self.weight_binX,  self.weight_binY],
                 self.weightbranchX, self.weightbranchY,
-                self.truth_branches
+                self.truth_branches,
+                method = self.referenceclass
             )
         
         counter=0
@@ -100,7 +101,10 @@ class TrainDataDeepLepton(TrainData):
                     stop = None,
                     branches = branches
                 )
-                weighter.addDistributions(nparray)
+                norm_hist = True
+                if self.referenceclass == 'flatten':
+                    norm_hist = False
+                weighter.addDistributions(nparray, norm_h = norm_hist)
                 #del nparray
                 counter=counter+1
             weighter.createRemoveProbabilitiesAndWeights(self.referenceclass)
@@ -112,19 +116,19 @@ class TrainDataDeepLepton(TrainData):
 
         from DeepJetCore.Weighter import Weighter
         from DeepJetCore.stopwatch import stopwatch
-        sw=stopwatch()
-        swall=stopwatch()
+        sw    = stopwatch()
+        swall = stopwatch()
         if not istraining:
             self.remove = False
 
-#        def reduceTruth(uproot_arrays):
-#            #import numpy as np
-#            prompt    = uproot_arrays[b'lep_isPromptId_Training']
-#            nonPrompt = uproot_arrays[b'lep_isNonPromptId_Training']
-#            fake      = uproot_arrays[b'lep_isFakeId_Training']
-#            print (prompt, nonPrompt, fake)
-#            return np.vstack((prompt, nonPrompt, fake)).transpose()
-#            #return np.concatenate( [ prompt, nonPrompt, fake] )
+        #def reduceTruth(uproot_arrays):
+        #    #import numpy as np
+        #    prompt    = uproot_arrays[b'lep_isPromptId_Training']
+        #    nonPrompt = uproot_arrays[b'lep_isNonPromptId_Training']
+        #    fake      = uproot_arrays[b'lep_isFakeId_Training']
+        #    print (prompt, nonPrompt, fake)
+        #    return np.vstack((prompt, nonPrompt, fake)).transpose()
+        #    #return np.concatenate( [ prompt, nonPrompt, fake] )
         
         print('reading '+filename)
         
@@ -166,19 +170,18 @@ class TrainDataDeepLepton(TrainData):
                                    self.SV_branches,
                                    self.nSV,self.nsamples)
 
-        import uproot3 as uproot
-        urfile       = uproot.open(filename)["tree"]
-#        truth_arrays = urfile.arrays(self.truth_branches)
-#        truth        = reduceTruth(truth_arrays)
-#        truth        = truth.astype(dtype='float32', order='C') #important, float32 and C-type!
+        #import uproot3 as uproot
+        #urfile       = uproot.open(filename)["tree"]
+        #truth_arrays = urfile.arrays(self.truth_branches)
+        #truth        = reduceTruth(truth_arrays)
+        #truth        = truth.astype(dtype='float32', order='C') #important, float32 and C-type!
 
+        import uproot3 as uproot
         urfile = uproot.open(filename)["tree"]
         truth = np.concatenate([np.expand_dims(urfile.array("lep_isPromptId_Training"), axis=1) ,
                                 np.expand_dims(urfile.array("lep_isNonPromptId_Training"), axis=1),
                                 np.expand_dims(urfile.array("lep_isFakeId_Training"), axis=1)],axis=1)
-
         truth = truth.astype(dtype='float32', order='C') #important, float32 and C-type!
-
 
         x_global            = x_global.astype(dtype='float32', order='C')
         x_pfCand_neutral    = x_pfCand_neutral.astype(dtype='float32', order='C')
@@ -204,9 +207,9 @@ class TrainDataDeepLepton(TrainData):
             #notremoves-=undef
             print('took ', sw.getAndReset(), ' to create remove indices')
 
-
         if self.remove:
-            print('remove')
+            #print('remove')
+            print ("notremoves", notremoves)
             x_global            =   x_global[notremoves > 0]
             x_pfCand_neutral    =   x_pfCand_neutral[notremoves > 0]
             x_pfCand_charged    =   x_pfCand_charged[notremoves > 0]
