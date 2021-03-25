@@ -283,6 +283,108 @@ from keras.layers import BatchNormalization
 #    
 #    return x
 #
+
+def block_deepLeptonDense_base(charged,neutrals,photons,electrons,muons,vertices,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
+    '''
+    deep Lepton convolution part. 
+    '''
+    npf=neutrals
+    if active:
+        #npf =  Dense(20, activation='elu',kernel_initializer='lecun_uniform', name='npf_dense0')(npf)
+        #if batchnorm:
+        #    npf = BatchNormalization(momentum=batchmomentum,name='npf_batchnorm0')(npf)
+        #npf = Dropout(dropoutRate,name='npf_dropout0')(npf) 
+        npf = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='npf_dense1')(npf)
+        if batchnorm:
+            npf = BatchNormalization(momentum=batchmomentum,name='npf_batchnorm1')(npf)
+        npf = Dropout(dropoutRate,name='npf_dropout1')(npf)
+        npf = Dense(3, kernel_initializer='lecun_uniform',  activation='elu' , name='npf_dense2')(npf)
+    else:
+        npf = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(npf)
+    
+    cpf=charged
+    if active:
+        cpf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='cpf_dense0')(cpf)
+        if batchnorm:
+            cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm0')(cpf)
+        cpf = Dropout(dropoutRate,name='cpf_dropout0')(cpf) 
+        cpf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='cpf_dense1')(cpf)
+        if batchnorm:
+            cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm1')(cpf)
+        cpf = Dropout(dropoutRate,name='cpf_dropout1')(cpf) 
+        cpf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='cpf_dense2')(cpf)
+        if batchnorm:
+            cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm2')(cpf)
+        cpf = Dropout(dropoutRate,name='cpf_dropout2')(cpf)
+        cpf = Dense(5, kernel_initializer='lecun_uniform',  activation='elu' , name='cpf_dense3')(cpf)
+    else:
+        cpf = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(cpf)
+        
+    ppf=photons
+    if active:
+        ppf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='ppf_dense0')(ppf)
+        if batchnorm:
+            ppf = BatchNormalization(momentum=batchmomentum,name='ppf_batchnorm0')(ppf)
+        ppf = Dropout(dropoutRate,name='ppf_dropout0')(ppf) 
+        ppf = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='ppf_dense')(ppf)
+        if batchnorm:
+            ppf = BatchNormalization(momentum=batchmomentum,name='ppf_batchnorm1')(ppf)
+        ppf = Dropout(dropoutRate,name='ppf_dropout1')(ppf)
+        ppf = Dense(3, kernel_initializer='lecun_uniform',  activation='elu' , name='ppf_dense2')(ppf)
+    else:
+        ppf = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(ppf)
+
+    epf=electrons
+    if active:
+        #epf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='epf_dense0')(epf)
+        #if batchnorm:
+        #    epf = BatchNormalization(momentum=batchmomentum,name='epf_batchnorm0')(epf)
+        #epf = Dropout(dropoutRate,name='epf_dropout0')(epf) 
+        epf = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='epf_dense1')(epf)
+        if batchnorm:
+            epf = BatchNormalization(momentum=batchmomentum,name='epf_batchnorm1')(epf)
+        epf = Dropout(dropoutRate,name='epf_dropout1')(epf)
+        epf = Dense(3, kernel_initializer='lecun_uniform',  activation='elu' , name='epf_dense2')(epf)
+    else:
+        epf = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(epf)
+
+    mpf=muons
+    if active:
+        #mpf = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='mpf_dense0')(mpf)
+        #if batchnorm:
+        #    mpf = BatchNormalization(momentum=batchmomentum,name='mpf_batchnorm0')(mpf)
+        #mpf = Dropout(dropoutRate,name='mpf_dropout0')(mpf) 
+        mpf = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='mpf_dense1')(mpf)
+        if batchnorm:
+            mpf = BatchNormalization(momentum=batchmomentum,name='mpf_batchnorm1')(mpf)
+        mpf = Dropout(dropoutRate,name='mpf_dropout1')(mpf)
+        mpf = Dense(3, kernel_initializer='lecun_uniform',  activation='elu' , name='mpf_dense2')(mpf)
+    else:
+        mpf = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(mpf)
+
+    vtx = vertices
+    if active:
+        #vtx = Dense(20, kernel_initializer='lecun_uniform',  activation='elu', name='vtx_dense0')(vtx)
+        #if batchnorm:
+        #    vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm0')(vtx)
+        #vtx = Dropout(dropoutRate,name='vtx_dropout0')(vtx) 
+        vtx = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='vtx_dense1')(vtx)
+        if batchnorm:
+            vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm1')(vtx)
+        vtx = Dropout(dropoutRate,name='vtx_dropout1')(vtx)
+        vtx = Dense(5, kernel_initializer='lecun_uniform',  activation='elu', name='vtx_dense2')(vtx)
+        if batchnorm:
+            vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm2')(vtx)
+        vtx = Dropout(dropoutRate,name='vtx_dropout2')(vtx)
+        vtx = Dense(3, kernel_initializer='lecun_uniform',  activation='elu', name='vtx_dense3')(vtx)
+    else:
+        vtx = Convolution1D(1,1, kernel_initializer='zeros',trainable=False)(vtx)
+
+    return npf,cpf,ppf,epf,mpf,vtx
+
+
+
+
 #Deep Lepton Standard Architecture with elu activation function
 def block_deepLeptonConvolutions_elu(charged,neutrals,photons,electrons,muons,vertices,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
     '''
@@ -384,19 +486,19 @@ def block_deepLeptonConvolutions_elu(charged,neutrals,photons,electrons,muons,ve
 
 def block_deepLeptonDense_elu(x,dropoutRate,active=True,batchnorm=False,batchmomentum=0.2):
     if active:
-        x=  Dense(200, activation='elu',kernel_initializer='lecun_uniform', name='df_dense0')(x)
+        x=  Dense(300, activation='elu',kernel_initializer='lecun_uniform', name='df_dense0')(x)
         if batchnorm:
             x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm0')(x)
         x = Dropout(dropoutRate,name='df_dense_dropout0')(x)
-        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense1')(x)
+        x=  Dense(300, activation='elu',kernel_initializer='lecun_uniform', name='df_dense1')(x) #100
         if batchnorm:
             x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm1')(x)
         x = Dropout(dropoutRate,name='df_dense_dropout1')(x)
-        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense2')(x)
+        x=  Dense(300, activation='elu',kernel_initializer='lecun_uniform', name='df_dense2')(x) #100
         if batchnorm:
             x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm2')(x)
         x = Dropout(dropoutRate,name='df_dense_dropout2')(x)
-        x=  Dense(100, activation='elu',kernel_initializer='lecun_uniform', name='df_dense3')(x)
+        x=  Dense(300, activation='elu',kernel_initializer='lecun_uniform', name='df_dense3')(x)
         if batchnorm:
             x = BatchNormalization(momentum=batchmomentum,name='df_dense_batchnorm3')(x)
         x = Dropout(dropoutRate,name='df_dense_dropout3')(x)

@@ -11,7 +11,7 @@ from keras.models import Model
 from keras.layers import BatchNormalization
 #from keras.layers.merge import Add, Multiply
 
-def model_deepLeptonReference_biLSTM_split_elu(Inputs,dropoutRate=0.5,momentum=0.2):
+def model_deepLeptonReference_biLSTM_split_elu(Inputs,dropoutRate=0.3,momentum=0.2):
     """
     reference 1x1 convolutional model for 'deepLepton'
     with recurrent layers and batch normalisation
@@ -29,14 +29,16 @@ def model_deepLeptonReference_biLSTM_split_elu(Inputs,dropoutRate=0.5,momentum=0
     vtx    =     BatchNormalization(momentum=momentum,name='vtx_input_batchnorm')     (Inputs[6])
     #ptreginput = BatchNormalization(momentum=momentum,name='reg_input_batchnorm')     (Inputs[4])
     
-    npf, cpf, ppf, epf, mpf, vtx = block_deepLeptonConvolutions_elu(neutrals=npf,
+    #try this also with: 
+    npf, cpf, ppf, epf, mpf, vtx = block_deepLeptonDense_base(neutrals=npf,
+    #npf, cpf, ppf, epf, mpf, vtx = block_deepLeptonConvolutions_elu(neutrals=npf,
                                                 charged=cpf,
                                                 photons=ppf,
                                                 electrons=epf,
                                                 muons=mpf,
                                                 vertices=vtx,
                                                 dropoutRate=dropoutRate,
-                                                active=True,
+                                                active=True, # set True
                                                 batchnorm=True, batchmomentum=momentum)
     
     
@@ -69,12 +71,14 @@ def model_deepLeptonReference_biLSTM_split_elu(Inputs,dropoutRate=0.5,momentum=0
     xCands  = Concatenate()( [npf,cpf,ppf,epf,mpf,vtx])
     xGlobal = globalvars
     
-    xCands  = block_deepLeptonDense_testSplit_elu_cands(xCands,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
-    xGlobal = block_deepLeptonDense_testSplit_elu_global(xGlobal,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    # Load the rest of the Network here, this is defined in Building Blocks
+    # Dense for lSTM output AND lep_vars, combined afterwards.
+    #xCands  = block_deepLeptonDense_testSplit_elu_cands(xCands,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    #xGlobal = block_deepLeptonDense_testSplit_elu_global(xGlobal,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
     
     x       = Concatenate()( [xGlobal,xCands])
-    x       = block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
-
+    #x       = block_deepLeptonDense_testSplit_elu_sum(x,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
+    x       = block_deepLeptonDense_elu(x,dropoutRate,active=True,batchnorm=True,batchmomentum=momentum)
     lepton_pred=Dense(3, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
     
     #reg = Concatenate()( [flavour_pred, ptreginput ] ) 
