@@ -11,7 +11,7 @@ from keras.models import Model
 from keras.layers import BatchNormalization
 
 def makeDense(neutral, charged, photon, electron, muon, vertices, layout, dropoutRate=0.5, batchnorm=True, batchmomentum=0.2):
-    
+    print('making dense')    
     npf = neutral
     cpf = charged
     ppf = photon
@@ -24,7 +24,7 @@ def makeDense(neutral, charged, photon, electron, muon, vertices, layout, dropou
     ppf_shape = layout["photon"]
     epf_shape = layout["electron"]
     mpf_shape = layout["muon"]
-    vtx_shape = layout["vertices"]
+    vtx_shape = layout["SV"]
 
     activation = layout["activation"]
 
@@ -32,48 +32,48 @@ def makeDense(neutral, charged, photon, electron, muon, vertices, layout, dropou
     for N in npf_shape:
         npf = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='npf_dense'+str(ctr))(npf)
         if batchnorm:
-            if ctr < len(npf_shape)-1 # last Dense layer should not be batch normed
-            npf = BatchNormalization(momentum=batchmomentum,name='npf_batchnorm'i+str(ctr))(npf)
+            if ctr < len(npf_shape)-1: # last Dense layer should not be batch normed
+                npf = BatchNormalization(momentum=batchmomentum,name='npf_batchnorm'+str(ctr))(npf)
         ctr += 1
 
     ctr = 0
     for N in cpf_shape:
         cpf = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='cpf_dense'+str(ctr))(cpf)
         if batchnorm:
-            if ctr < len(cpf_shape)-1 # last Dense layer should not be batch normed
-            cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm'i+str(ctr))(cpf)
+            if ctr < len(cpf_shape)-1: # last Dense layer should not be batch normed
+                cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm'+str(ctr))(cpf)
         ctr += 1
 
     ctr = 0
     for N in ppf_shape:
         ppf = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='ppf_dense'+str(ctr))(ppf)
         if batchnorm:
-            if ctr < len(ppf_shape)-1 # last Dense layer should not be batch normed
-            ppf = BatchNormalization(momentum=batchmomentum,name='ppf_batchnorm'i+str(ctr))(ppf)
+            if ctr < len(ppf_shape)-1: # last Dense layer should not be batch normed
+                ppf = BatchNormalization(momentum=batchmomentum,name='ppf_batchnorm'+str(ctr))(ppf)
         ctr += 1
 
     ctr = 0
     for N in epf_shape:
         epf = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='epf_dense'+str(ctr))(epf)
         if batchnorm:
-            if ctr < len(epf_shape)-1 # last Dense layer should not be batch normed
-            epf = BatchNormalization(momentum=batchmomentum,name='epf_batchnorm'i+str(ctr))(epf)
+            if ctr < len(epf_shape)-1: # last Dense layer should not be batch normed
+                epf = BatchNormalization(momentum=batchmomentum,name='epf_batchnorm'+str(ctr))(epf)
         ctr += 1
 
     ctr = 0
     for N in mpf_shape:
         mpf = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='mpf_dense'+str(ctr))(mpf)
         if batchnorm:
-            if ctr < len(mpf_shape)-1 # last Dense layer should not be batch normed
-            mpf = BatchNormalization(momentum=batchmomentum,name='mpf_batchnorm'i+str(ctr))(mpf)
+            if ctr < len(mpf_shape)-1: # last Dense layer should not be batch normed
+                mpf = BatchNormalization(momentum=batchmomentum,name='mpf_batchnorm'+str(ctr))(mpf)
         ctr += 1
 
     ctr = 0
     for N in vtx_shape:
         vtx = Dense(N, kernel_initializer='lecun_uniform',  activation=activation, name='vtx_dense'+str(ctr))(vtx)
         if batchnorm:
-            if ctr < len(vtx_shape)-1 # last Dense layer should not be batch normed
-            vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm'i+str(ctr))(vtx)
+            if ctr < len(vtx_shape)-1: # last Dense layer should not be batch normed
+                vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm'+str(ctr))(vtx)
         ctr += 1
 
 
@@ -103,7 +103,7 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
                                                  muon=mpf, 
                                                  vertices=vtx, 
                                                  layout=layout, 
-                                                 dropoutRate=droputRate, 
+                                                 dropoutRate=dropoutRate, 
                                                  batchnorm=True, 
                                                  batchmomentum=momentum)
     else:
@@ -121,7 +121,7 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
     ppf = Bidirectional(LSTM(50,implementation=2, name='ppf_lstm'), merge_mode='concat')(ppf)
     ppf = BatchNormalization(momentum=momentum,name='ppflstm_batchnorm')(ppf)
     ppf = Dropout(dropoutRate)(ppf)
-                                               
+                                                    
     epf = Bidirectional(LSTM(50,implementation=2, name='epf_lstm'), merge_mode='concat')(epf)
     epf = BatchNormalization(momentum=momentum,name='epflstm_batchnorm')(epf)
     epf = Dropout(dropoutRate)(epf)
@@ -143,7 +143,7 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
         ctr = 0
         for N in layout["cands"]:
             xCands = Dense(N, activation=layout["activation"], kernel_initializer="lecun_uniform", name="cands_Dense"+str(ctr))(xCands)
-            xCands = BatchNormalization(momentum=batchmomentum,name="cands_dense_batchnorm"+str(ctr))(xCands)
+            xCands = BatchNormalization(momentum=momentum,name="cands_dense_batchnorm"+str(ctr))(xCands)
             xCands = Dropout(dropoutRate, name="cands_dense_dropout"+str(ctr))(xCands)
             ctr += 1
     
@@ -151,20 +151,20 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
         ctr = 0
         for N in layout["leptonStart"]:
             xGlobals = Dense(N, activation=layout["activation"], kernel_initializer="lecun_uniform", name="global_Dense"+str(ctr))(xGlobals)
-            xGlobals = BatchNormalization(momentum=batchmomentum,name="global_dense_batchnorm"+str(ctr))(xGlobals)
+            xGlobals = BatchNormalization(momentum=momentum,name="global_dense_batchnorm"+str(ctr))(xGlobals)
             xGlobals = Dropout(dropoutRate, name="global_dense_dropout"+str(ctr))(xGlobals)
             ctr += 1
 
     # Join Cands and Global(lepton vars):
-    x = Concatenate()( [xGlobal,xCands] )
+    x = Concatenate()( [xGlobals,xCands] )
 
     # Last part of Dense Layers
     
     ctr = 0
     for N in layout["fC"]:
         x = Dense(N, activation=layout["activation"], kernel_initializer="lecun_uniform", name="Dense"+str(ctr))(x)
-        x = BatchNormalization(momentum=batchmomentum,name="dense_batchnorm"+str(ctr))(x)
-        x = Droput(dropoutRate, name="dense_dropout"+str(ctr)(x)
+        x = BatchNormalization(momentum=momentum,name="dense_batchnorm"+str(ctr))(x)
+        x = Dropout(dropoutRate, name="dense_dropout"+str(ctr))(x)
         ctr += 1
     # Prediction layer
     lepton_pred=Dense(3, activation='softmax',kernel_initializer='lecun_uniform',name='ID_pred')(x)
