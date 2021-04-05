@@ -31,10 +31,11 @@ class TrainDataDeepLepton(TrainData):
         #self.reduce_truth     = ['lep_isPromptId_Training', 'lep_isNonPromptId_Training', 'lep_isFakeId_Training']
         #self.class_weights    = [1.00, 1.00, 1.00]
 
-        self.weight_binX = np.array([
-                5,7.5,10,12.5,15,17.5,20,25,30,35,40,45,50,60,75,100,
-                125,150,175,200,250,300,400,500,
-                600,2000],dtype=float)
+        #self.weight_binX = np.array([
+        #        5,7.5,10,12.5,15,17.5,20,25,30,35,40,45,50,60,75,100,
+        #        125,150,175,200,250,300,400,500,
+        #        600,2000],dtype=float)
+        self.weight_binX = np.geomspace(3.5, 2000, 30)
         
         self.weight_binY = np.array(
             [-2.5,-2.,-1.5,-1.,-0.5,0.5,1,1.5,2.,2.5],
@@ -54,22 +55,22 @@ class TrainDataDeepLepton(TrainData):
             ]
 
         self.pfCand_neutral_branches = ['pfCand_neutral_eta', 'pfCand_neutral_phi', 'pfCand_neutral_pt', 'pfCand_neutral_puppiWeight', 'pfCand_neutral_puppiWeightNoLep', 'pfCand_neutral_ptRel', 'pfCand_neutral_deltaR',]
-        self.npfCand_neutral         = 5
+        self.npfCand_neutral         = 10
 
         self.pfCand_charged_branches = ['pfCand_charged_d0', 'pfCand_charged_d0Err', 'pfCand_charged_dz', 'pfCand_charged_dzErr', 'pfCand_charged_eta', 'pfCand_charged_mass', 'pfCand_charged_phi', 'pfCand_charged_pt', 'pfCand_charged_puppiWeight', 'pfCand_charged_puppiWeightNoLep', 'pfCand_charged_trkChi2', 'pfCand_charged_vtxChi2', 'pfCand_charged_charge', 'pfCand_charged_lostInnerHits', 'pfCand_charged_pvAssocQuality', 'pfCand_charged_trkQuality', 'pfCand_charged_ptRel', 'pfCand_charged_deltaR',]
-        self.npfCand_charged         = 25
+        self.npfCand_charged         = 80
 
         self.pfCand_photon_branches  = ['pfCand_photon_eta', 'pfCand_photon_phi', 'pfCand_photon_pt', 'pfCand_photon_puppiWeight', 'pfCand_photon_puppiWeightNoLep', 'pfCand_photon_ptRel', 'pfCand_photon_deltaR',]
-        self.npfCand_photon          = 10
+        self.npfCand_photon          = 50
 
         self.pfCand_electron_branches = ['pfCand_electron_d0', 'pfCand_electron_d0Err', 'pfCand_electron_dz', 'pfCand_electron_dzErr', 'pfCand_electron_eta', 'pfCand_electron_mass', 'pfCand_electron_phi', 'pfCand_electron_pt', 'pfCand_electron_puppiWeight', 'pfCand_electron_puppiWeightNoLep', 'pfCand_electron_trkChi2', 'pfCand_electron_vtxChi2', 'pfCand_electron_charge', 'pfCand_electron_lostInnerHits', 'pfCand_electron_pvAssocQuality', 'pfCand_electron_trkQuality', 'pfCand_electron_ptRel', 'pfCand_electron_deltaR',]
-        self.npfCand_electron         = 3
+        self.npfCand_electron         = 4
 
         self.pfCand_muon_branches = ['pfCand_muon_d0', 'pfCand_muon_d0Err', 'pfCand_muon_dz', 'pfCand_muon_dzErr', 'pfCand_muon_eta', 'pfCand_muon_mass', 'pfCand_muon_phi', 'pfCand_muon_pt', 'pfCand_muon_puppiWeight', 'pfCand_muon_puppiWeightNoLep', 'pfCand_muon_trkChi2', 'pfCand_muon_vtxChi2', 'pfCand_muon_charge', 'pfCand_muon_lostInnerHits', 'pfCand_muon_pvAssocQuality', 'pfCand_muon_trkQuality', 'pfCand_muon_ptRel', 'pfCand_muon_deltaR']
-        self.npfCand_muon         = 3
+        self.npfCand_muon         = 6
 
         self.SV_branches = ['SV_dlen', 'SV_dlenSig', 'SV_dxy', 'SV_dxySig', 'SV_pAngle', 'SV_chi2', 'SV_eta', 'SV_mass', 'SV_ndof', 'SV_phi', 'SV_pt', 'SV_x', 'SV_y', 'SV_z', 'SV_ptRel', 'SV_deltaR',]
-        self.nSV         = 4
+        self.nSV         = 10
 
     def createWeighterObjects(self, allsourcefiles):
         # 
@@ -190,6 +191,31 @@ class TrainDataDeepLepton(TrainData):
         x_pfCand_electron   = x_pfCand_electron.astype(dtype='float32', order='C')
         x_pfCand_muon       = x_pfCand_muon.astype(dtype='float32', order='C')
         x_pfCand_SV         = x_pfCand_SV.astype(dtype='float32', order='C')
+        print('start counting nans in ', filename)
+        import math
+        x_s = [x_global,x_pfCand_neutral,x_pfCand_charged,x_pfCand_photon,x_pfCand_electron,x_pfCand_muon,x_pfCand_SV]
+        x_s_name = ['x_global','x_pfCand_neutral','x_pfCand_charged','x_pfCand_photon','x_pfCand_electron','x_pfCand_muon','x_pfCand_SV']
+        counter_all = 0
+        for i in x_s:
+            counter = 0
+            for ii in i:
+                #print(list(np.shape(ii)))
+                if len(list(np.shape(ii))) > 1:
+                    for iii in ii:
+                        for iiii in iii:
+                            if math.isnan(iiii):
+                                counter += 1
+                                print('Found Nan in ', x_s_name[i], ' in Variable ', iiii, ' of file ', filename)
+                else:
+                    #print(ii)
+                    for iii in ii:
+                        if math.isnan(iii):
+                            counter += 1
+                            print('Found Nan in ', x_s_name[i], ' in Variable ', iii, ' of file ', filename) 
+            counter_all += counter
+        if counter_all == 0:
+            print('No Nans found in ', filename)
+            self.remove = False
 
         if self.remove:
             b = [self.weightbranchX,self.weightbranchY]
@@ -206,10 +232,12 @@ class TrainDataDeepLepton(TrainData):
             #undef=for_remove['isUndefined']
             #notremoves-=undef
             print('took ', sw.getAndReset(), ' to create remove indices')
-
+            #if counter_all == 0:
+            #    notremoves = list(np.ones(np.shape(notremoves)))
+                
         if self.remove:
             #print('remove')
-            print ("notremoves", notremoves)
+            print ("notremoves", notremoves, "<- notremoves")
             x_global            =   x_global[notremoves > 0]
             x_pfCand_neutral    =   x_pfCand_neutral[notremoves > 0]
             x_pfCand_charged    =   x_pfCand_charged[notremoves > 0]
@@ -221,7 +249,13 @@ class TrainDataDeepLepton(TrainData):
 
         newnsamp=x_global.shape[0]
         print('reduced content to ', int(float(newnsamp)/float(self.nsamples)*100),'%')
-
+        #print(x_global)
+        #print(x_pfCand_neutral)
+        #print(x_pfCand_charged)
+        #print(x_pfCand_photon)
+        #print(x_pfCand_electron)
+        #print(x_pfCand_muon)
+        #print(x_pfCand_SV)
         
         print('remove nans')
         x_global          = np.where(np.isfinite(x_global) , x_global, 0)
