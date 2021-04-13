@@ -79,6 +79,76 @@ def makeDense(neutral, charged, photon, electron, muon, vertices, layout, dropou
 
     return npf, cpf, ppf, epf, mpf, vtx
 
+def makeCNN(neutral, charged, photon, electron, muon, vertices, layout, dropoutRate=0.5, batchnorm=True, batchmomentum=0.2):
+    print('making dense')    
+    npf = neutral
+    cpf = charged
+    ppf = photon
+    epf = electron
+    mpf = muon
+    vtx = vertices
+
+    npf_shape = layout["neutral"]
+    cpf_shape = layout["charged"]
+    ppf_shape = layout["photon"]
+    epf_shape = layout["electron"]
+    mpf_shape = layout["muon"]
+    vtx_shape = layout["SV"]
+
+    activation = layout["activation"]
+
+    ctr = 0
+    for N in npf_shape:
+        npf = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='npf_dense'+str(ctr))(npf)
+        if batchnorm:
+            if ctr < len(npf_shape)-1: # last Convolution1D layer should not be batch normed
+                npf = BatchNormalization(momentum=batchmomentum,name='npf_batchnorm'+str(ctr))(npf)
+        ctr += 1
+
+    ctr = 0
+    for N in cpf_shape:
+        cpf = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='cpf_dense'+str(ctr))(cpf)
+        if batchnorm:
+            if ctr < len(cpf_shape)-1: # last Convolution1D layer should not be batch normed
+                cpf = BatchNormalization(momentum=batchmomentum,name='cpf_batchnorm'+str(ctr))(cpf)
+        ctr += 1
+
+    ctr = 0
+    for N in ppf_shape:
+        ppf = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='ppf_dense'+str(ctr))(ppf)
+        if batchnorm:
+            if ctr < len(ppf_shape)-1: # last Convolution1D layer should not be batch normed
+                ppf = BatchNormalization(momentum=batchmomentum,name='ppf_batchnorm'+str(ctr))(ppf)
+        ctr += 1
+
+    ctr = 0
+    for N in epf_shape:
+        epf = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='epf_dense'+str(ctr))(epf)
+        if batchnorm:
+            if ctr < len(epf_shape)-1: # last Convolution1D layer should not be batch normed
+                epf = BatchNormalization(momentum=batchmomentum,name='epf_batchnorm'+str(ctr))(epf)
+        ctr += 1
+
+    ctr = 0
+    for N in mpf_shape:
+        mpf = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='mpf_dense'+str(ctr))(mpf)
+        if batchnorm:
+            if ctr < len(mpf_shape)-1: # last Convolution1D layer should not be batch normed
+                mpf = BatchNormalization(momentum=batchmomentum,name='mpf_batchnorm'+str(ctr))(mpf)
+        ctr += 1
+
+    ctr = 0
+    for N in vtx_shape:
+        vtx = Convolution1D(N, 1, kernel_initializer='lecun_uniform',  activation=activation, name='vtx_dense'+str(ctr))(vtx)
+        if batchnorm:
+            if ctr < len(vtx_shape)-1: # last Convolution1D layer should not be batch normed
+                vtx = BatchNormalization(momentum=batchmomentum,name='vtx_batchnorm'+str(ctr))(vtx)
+        ctr += 1
+
+
+    return npf, cpf, ppf, epf, mpf, vtx
+
+
 
 
 def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
@@ -106,8 +176,19 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
                                                  dropoutRate=dropoutRate, 
                                                  batchnorm=True, 
                                                  batchmomentum=momentum)
+    elif layout["mode"] == "CNN":
+        npf, cpf, ppf, epf, mpf, vtx = makeCNN(neutral=npf, 
+                                                 charged=cpf, 
+                                                 photon=ppf, 
+                                                 electron=epf, 
+                                                 muon=mpf, 
+                                                 vertices=vtx, 
+                                                 layout=layout, 
+                                                 dropoutRate=dropoutRate, 
+                                                 batchnorm=True, 
+                                                 batchmomentum=momentum)
     else:
-        raise NotImplementedError
+        raise NotImplementedError("Implement this Layer type!")
 
     # LSTMs:
     npf = Bidirectional(LSTM(50,implementation=2, name='npf_lstm'), merge_mode='concat')(npf)
