@@ -53,7 +53,9 @@ class TrainDataDeepDisplacedLepton(TrainData):
             'lep_charge',
             'lep_dxyErr', 'lep_dzErr', 'lep_ip3d',
             'lep_jetPtRelv2', 'lep_jetRelIso',
-            'lep_miniPFRelIso_chg', 'lep_mvaLowPt', 'lep_nStations', 'lep_nTrackerLayers', 'lep_pfRelIso03_all', 'lep_pfRelIso03_chg', 'lep_pfRelIso04_all', 'lep_ptErr',
+            'lep_miniPFRelIso_chg', 'lep_mvaLowPt', 'lep_nStations',
+            'lep_nTrackerLayers', 'lep_pfRelIso03_all', 'lep_pfRelIso03_chg',
+            'lep_pfRelIso04_all', 'lep_ptErr',
             'lep_segmentComp', 'lep_tkRelIso', 'lep_tunepRelPt',
             ]
 
