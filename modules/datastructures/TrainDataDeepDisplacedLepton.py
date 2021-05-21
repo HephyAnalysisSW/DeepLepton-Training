@@ -77,7 +77,8 @@ class TrainDataDeepDisplacedLepton(TrainData):
         self.npfCand_charged = 80
 
         self.pfCand_photon_branches = ['pfCand_photon_eta', 'pfCand_photon_phi', 'pfCand_photon_pt',
-                                       'pfCand_photon_puppiWeight', 'pfCand_photon_puppiWeightNoLep', 'pfCand_photon_ptRel', 'pfCand_photon_deltaR', ]
+                                       'pfCand_photon_puppiWeight', 'pfCand_photon_puppiWeightNoLep', 
+                                       'pfCand_photon_ptRel', 'pfCand_photon_deltaR', ]
         self.npfCand_photon = 50
 
         self.pfCand_electron_branches = ['pfCand_electron_d0', 'pfCand_electron_d0Err', 'pfCand_electron_dz', 'pfCand_electron_dzErr', 'pfCand_electron_eta', 'pfCand_electron_mass', 'pfCand_electron_phi', 'pfCand_electron_pt', 'pfCand_electron_puppiWeight',
