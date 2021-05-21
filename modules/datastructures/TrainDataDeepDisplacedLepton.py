@@ -62,11 +62,18 @@ class TrainDataDeepDisplacedLepton(TrainData):
         ]
 
         self.pfCand_neutral_branches = ['pfCand_neutral_eta', 'pfCand_neutral_phi', 'pfCand_neutral_pt',
-                                        'pfCand_neutral_puppiWeight', 'pfCand_neutral_puppiWeightNoLep', 'pfCand_neutral_ptRel', 'pfCand_neutral_deltaR', ]
+                                        'pfCand_neutral_puppiWeight', 'pfCand_neutral_puppiWeightNoLep',
+                                        'pfCand_neutral_ptRel', 'pfCand_neutral_deltaR', ]
         self.npfCand_neutral = 10
 
-        self.pfCand_charged_branches = ['pfCand_charged_d0', 'pfCand_charged_d0Err', 'pfCand_charged_dz', 'pfCand_charged_dzErr', 'pfCand_charged_eta', 'pfCand_charged_mass', 'pfCand_charged_phi', 'pfCand_charged_pt', 'pfCand_charged_puppiWeight',
-                                        'pfCand_charged_puppiWeightNoLep', 'pfCand_charged_trkChi2', 'pfCand_charged_vtxChi2', 'pfCand_charged_charge', 'pfCand_charged_lostInnerHits', 'pfCand_charged_pvAssocQuality', 'pfCand_charged_trkQuality', 'pfCand_charged_ptRel', 'pfCand_charged_deltaR', ]
+        self.pfCand_charged_branches = ['pfCand_charged_d0', 'pfCand_charged_d0Err', 'pfCand_charged_dz',
+                                        'pfCand_charged_dzErr', 'pfCand_charged_eta', 'pfCand_charged_mass',
+                                        'pfCand_charged_phi', 'pfCand_charged_pt', 'pfCand_charged_puppiWeight',
+                                        'pfCand_charged_puppiWeightNoLep', 'pfCand_charged_trkChi2',
+                                        'pfCand_charged_vtxChi2', 'pfCand_charged_charge',
+                                        'pfCand_charged_lostInnerHits', 'pfCand_charged_pvAssocQuality',
+                                        'pfCand_charged_trkQuality', 'pfCand_charged_ptRel',
+                                        'pfCand_charged_deltaR', ]
         self.npfCand_charged = 80
 
         self.pfCand_photon_branches = ['pfCand_photon_eta', 'pfCand_photon_phi', 'pfCand_photon_pt',
