@@ -48,48 +48,126 @@ class TrainDataDeepDisplacedLepton(TrainData):
         )
 
         self.global_branches = [
-            'lep_pt', 'lep_eta', 'lep_phi',
+            'lep_pt',
+            'lep_eta',
+            'lep_phi',
             'lep_mediumId',
             'lep_miniPFRelIso_all',
-            'lep_sip3d', 'lep_dxy', 'lep_dz',
+            'lep_sip3d',
+            'lep_dxy',
+            'lep_dz',
             'lep_charge',
-            'lep_dxyErr', 'lep_dzErr', 'lep_ip3d',
-            'lep_jetPtRelv2', 'lep_jetRelIso',
-            'lep_miniPFRelIso_chg', 'lep_mvaLowPt', 'lep_nStations',
-            'lep_nTrackerLayers', 'lep_pfRelIso03_all', 'lep_pfRelIso03_chg',
-            'lep_pfRelIso04_all', 'lep_ptErr',
-            'lep_segmentComp', 'lep_tkRelIso', 'lep_tunepRelPt',
-        ]
+            'lep_dxyErr',
+            'lep_dzErr',
+            'lep_ip3d',
+            'lep_jetPtRelv2',
+            'lep_jetRelIso',
+            'lep_miniPFRelIso_chg',
+            'lep_mvaLowPt',
+            'lep_nStations',
+            'lep_nTrackerLayers',
+            'lep_pfRelIso03_all',
+            'lep_pfRelIso03_chg',
+            'lep_pfRelIso04_all',
+            'lep_ptErr',
+            'lep_segmentComp',
+            'lep_tkRelIso',
+            'lep_tunepRelPt', ]
 
-        self.pfCand_neutral_branches = ['pfCand_neutral_eta', 'pfCand_neutral_phi', 'pfCand_neutral_pt',
-                                        'pfCand_neutral_puppiWeight', 'pfCand_neutral_puppiWeightNoLep',
-                                        'pfCand_neutral_ptRel', 'pfCand_neutral_deltaR', ]
+        self.pfCand_neutral_branches = ['pfCand_neutral_eta',
+                                        'pfCand_neutral_phi',
+                                        'pfCand_neutral_pt',
+                                        'pfCand_neutral_puppiWeight',
+                                        'pfCand_neutral_puppiWeightNoLep',
+                                        'pfCand_neutral_ptRel',
+                                        'pfCand_neutral_deltaR', ]
         self.npfCand_neutral = 10
 
-        self.pfCand_charged_branches = ['pfCand_charged_d0', 'pfCand_charged_d0Err', 'pfCand_charged_dz',
-                                        'pfCand_charged_dzErr', 'pfCand_charged_eta', 'pfCand_charged_mass',
-                                        'pfCand_charged_phi', 'pfCand_charged_pt', 'pfCand_charged_puppiWeight',
-                                        'pfCand_charged_puppiWeightNoLep', 'pfCand_charged_trkChi2',
-                                        'pfCand_charged_vtxChi2', 'pfCand_charged_charge',
-                                        'pfCand_charged_lostInnerHits', 'pfCand_charged_pvAssocQuality',
-                                        'pfCand_charged_trkQuality', 'pfCand_charged_ptRel',
+        self.pfCand_charged_branches = ['pfCand_charged_d0',
+                                        'pfCand_charged_d0Err',
+                                        'pfCand_charged_dz',
+                                        'pfCand_charged_dzErr',
+                                        'pfCand_charged_eta',
+                                        'pfCand_charged_mass',
+                                        'pfCand_charged_phi',
+                                        'pfCand_charged_pt',
+                                        'pfCand_charged_puppiWeight',
+                                        'pfCand_charged_puppiWeightNoLep',
+                                        'pfCand_charged_trkChi2',
+                                        'pfCand_charged_vtxChi2',
+                                        'pfCand_charged_charge',
+                                        'pfCand_charged_lostInnerHits',
+                                        'pfCand_charged_pvAssocQuality',
+                                        'pfCand_charged_trkQuality',
+                                        'pfCand_charged_ptRel',
                                         'pfCand_charged_deltaR', ]
         self.npfCand_charged = 80
 
-        self.pfCand_photon_branches = ['pfCand_photon_eta', 'pfCand_photon_phi', 'pfCand_photon_pt',
-                                       'pfCand_photon_puppiWeight', 'pfCand_photon_puppiWeightNoLep', 'pfCand_photon_ptRel', 'pfCand_photon_deltaR', ]
+        self.pfCand_photon_branches = ['pfCand_photon_eta',
+                                       'pfCand_photon_phi',
+                                       'pfCand_photon_pt',
+                                       'pfCand_photon_puppiWeight',
+                                       'pfCand_photon_puppiWeightNoLep',
+                                       'pfCand_photon_ptRel',
+                                       'pfCand_photon_deltaR', ]
         self.npfCand_photon = 50
 
-        self.pfCand_electron_branches = ['pfCand_electron_d0', 'pfCand_electron_d0Err', 'pfCand_electron_dz', 'pfCand_electron_dzErr', 'pfCand_electron_eta', 'pfCand_electron_mass', 'pfCand_electron_phi', 'pfCand_electron_pt', 'pfCand_electron_puppiWeight',
-                                         'pfCand_electron_puppiWeightNoLep', 'pfCand_electron_trkChi2', 'pfCand_electron_vtxChi2', 'pfCand_electron_charge', 'pfCand_electron_lostInnerHits', 'pfCand_electron_pvAssocQuality', 'pfCand_electron_trkQuality', 'pfCand_electron_ptRel', 'pfCand_electron_deltaR', ]
+        self.pfCand_electron_branches = ['pfCand_electron_d0',
+                                         'pfCand_electron_d0Err',
+                                         'pfCand_electron_dz',
+                                         'pfCand_electron_dzErr',
+                                         'pfCand_electron_eta',
+                                         'pfCand_electron_mass',
+                                         'pfCand_electron_phi',
+                                         'pfCand_electron_pt',
+                                         'pfCand_electron_puppiWeight',
+                                         'pfCand_electron_puppiWeightNoLep',
+                                         'pfCand_electron_trkChi2',
+                                         'pfCand_electron_vtxChi2',
+                                         'pfCand_electron_charge',
+                                         'pfCand_electron_lostInnerHits',
+                                         'pfCand_electron_pvAssocQuality',
+                                         'pfCand_electron_trkQuality',
+                                         'pfCand_electron_ptRel',
+                                         'pfCand_electron_deltaR', ]
         self.npfCand_electron = 4
 
-        self.pfCand_muon_branches = ['pfCand_muon_d0', 'pfCand_muon_d0Err', 'pfCand_muon_dz', 'pfCand_muon_dzErr', 'pfCand_muon_eta', 'pfCand_muon_mass', 'pfCand_muon_phi', 'pfCand_muon_pt', 'pfCand_muon_puppiWeight',
-                                     'pfCand_muon_puppiWeightNoLep', 'pfCand_muon_trkChi2', 'pfCand_muon_vtxChi2', 'pfCand_muon_charge', 'pfCand_muon_lostInnerHits', 'pfCand_muon_pvAssocQuality', 'pfCand_muon_trkQuality', 'pfCand_muon_ptRel', 'pfCand_muon_deltaR']
+        self.pfCand_muon_branches = ['pfCand_muon_d0',
+                                     'pfCand_muon_d0Err',
+                                     'pfCand_muon_dz',
+                                     'pfCand_muon_dzErr',
+                                     'pfCand_muon_eta',
+                                     'pfCand_muon_mass',
+                                     'pfCand_muon_phi',
+                                     'pfCand_muon_pt',
+                                     'pfCand_muon_puppiWeight',
+                                     'pfCand_muon_puppiWeightNoLep',
+                                     'pfCand_muon_trkChi2',
+                                     'pfCand_muon_vtxChi2',
+                                     'pfCand_muon_charge',
+                                     'pfCand_muon_lostInnerHits',
+                                     'pfCand_muon_pvAssocQuality',
+                                     'pfCand_muon_trkQuality',
+                                     'pfCand_muon_ptRel',
+                                     'pfCand_muon_deltaR']
         self.npfCand_muon = 6
 
-        self.SV_branches = ['SV_dlen', 'SV_dlenSig', 'SV_dxy', 'SV_dxySig', 'SV_pAngle', 'SV_chi2', 'SV_eta',
-                            'SV_mass', 'SV_ndof', 'SV_phi', 'SV_pt', 'SV_x', 'SV_y', 'SV_z', 'SV_ptRel', 'SV_deltaR', ]
+        self.SV_branches = ['SV_dlen',
+                            'SV_dlenSig',
+                            'SV_dxy',
+                            'SV_dxySig',
+                            'SV_pAngle',
+                            'SV_chi2',
+                            'SV_eta',
+                            'SV_mass',
+                            'SV_ndof',
+                            'SV_phi',
+                            'SV_pt',
+                            'SV_x',
+                            'SV_y',
+                            'SV_z',
+                            'SV_ptRel',
+                            'SV_deltaR', ]
         self.nSV = 10
 
     def createWeighterObjects(self, allsourcefiles):
@@ -129,6 +207,7 @@ class TrainDataDeepDisplacedLepton(TrainData):
                 #del nparray
                 counter = counter+1
             weighter.createRemoveProbabilitiesAndWeights(self.referenceclass)
+        printHistos("/eos/vbc/user/benjamin.wilhelmy/DeepLepton/weights_plots/")
         return {'weigther': weighter}
 
     def convertFromSourceFile(self, filename, weighterobjects, istraining):
