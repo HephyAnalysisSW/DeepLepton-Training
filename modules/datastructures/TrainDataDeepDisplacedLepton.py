@@ -1,7 +1,7 @@
 from DeepJetCore.TrainData import TrainData
 from DeepJetCore.TrainData import fileTimeOut as tdfto
 import numpy as np
-
+import os
 # set tree name to use
 import DeepJetCore.preprocessing
 DeepJetCore.preprocessing.setTreeName('tree')
@@ -23,14 +23,16 @@ class TrainDataDeepDisplacedLepton(TrainData):
         self.truth_branches = ['lep_isPromptId_Training',
                                'lep_isNonPromptId_Training',
                                'lep_isFakeId_Training',
-                               'lep_isFromSUSY_Training']  # 'lep_isFromSUSYHF_Training'
+                               'lep_isFromSUSY_Training',
+                               'lep_isFromSUSYHF_Training',]  # 'lep_isFromSUSYHF_Training'
         self.undefTruth = []
         self.weightbranchX = 'lep_pt'
-        self.weightbranchY = 'lep_eta'
+        self.weightbranchY = 'lep_dxy'
         self.remove = True
-        self.referenceclass = 'lep_isNonPromptId_Training'
+        self.referenceclass = 'lep_isFromSUSY_Training' # later maybe lep_isFromSUSYandHF_Training
         # setting DeepLepton specific defaults
         self.treename = "tree"
+        self.firstfilepred = True
         # self.undefTruth=['isUndefined']
         #self.red_classes      = ['cat_P', 'cat_NP', 'cat_F']
         #self.reduce_truth     = ['lep_isPromptId_Training', 'lep_isNonPromptId_Training', 'lep_isFakeId_Training']
@@ -42,19 +44,23 @@ class TrainDataDeepDisplacedLepton(TrainData):
             600, 2000], dtype=float)
         #self.weight_binX = np.geomspace(3.5, 2000, 30)
 
-        self.weight_binY = np.array(
-            [-2.5, -2., -1.5, -1., -0.5, 0.5, 1, 1.5, 2., 2.5],
-            dtype=float
-        )
+        # for lep_eta it was:
+        # self.weight_binY = np.array(
+        #     [-2.5, -2., -1.5, -1., -0.5, 0.5, 1, 1.5, 2., 2.5],
+        #     dtype=float
+        # )
+        
+        # consicer num=20 or higher?
+        self.weight_binY = np.linspace(start=-5, stop=5, num=10, endpoint=True, dtype=float)
 
         self.global_branches = [
-            'lep_pt',
-            'lep_eta',
-            'lep_phi',
-            'lep_mediumId',
-            'lep_miniPFRelIso_all',
-            'lep_sip3d',
-            'lep_dxy',
+            'lep_pt',                   # 0 
+            'lep_eta',                  # 1
+            'lep_phi',                  # 2
+            'lep_mediumId',             # 3
+            'lep_miniPFRelIso_all',     # 4
+            'lep_sip3d',                # 5
+            'lep_dxy',                  # 6
             'lep_dz',
             'lep_charge',
             'lep_dxyErr',
@@ -207,7 +213,6 @@ class TrainDataDeepDisplacedLepton(TrainData):
                 #del nparray
                 counter = counter+1
             weighter.createRemoveProbabilitiesAndWeights(self.referenceclass)
-        printHistos("/eos/vbc/user/benjamin.wilhelmy/DeepLepton/weights_plots/")
         return {'weigther': weighter}
 
     def convertFromSourceFile(self, filename, weighterobjects, istraining):
@@ -221,15 +226,6 @@ class TrainDataDeepDisplacedLepton(TrainData):
         if not istraining:
             self.remove = False
 
-        # def reduceTruth(uproot_arrays):
-        #    #import numpy as np
-        #    prompt    = uproot_arrays[b'lep_isPromptId_Training']
-        #    nonPrompt = uproot_arrays[b'lep_isNonPromptId_Training']
-        #    fake      = uproot_arrays[b'lep_isFakeId_Training']
-        #    print (prompt, nonPrompt, fake)
-        #    return np.vstack((prompt, nonPrompt, fake)).transpose()
-        #    #return np.concatenate( [ prompt, nonPrompt, fake] )
-
         print('reading '+filename)
         import ROOT
         from root_numpy import tree2array, root2array
@@ -242,54 +238,6 @@ class TrainDataDeepDisplacedLepton(TrainData):
         from DeepJetCore.preprocessing import MeanNormZeroPad, MeanNormZeroPadParticles
 
         print('padding '+filename)
-        # globalvars
-        #globalarr = tree2array(tree, self.global_branches)
-        #x_global = np.array([list(x) for x in globalarr])
-
-        def padding(arr, nbranches, nCands, nlist):
-            zeros = [0. for i in range(nbranches)]
-            padded = []
-            print(len(nlist))
-            zeroarr = np.zeros((len(nlist), nCands, nbranches))
-            cntr = 0
-            for a, N in zip(arr, nlist):
-                #pad = []
-                # transform list of arrays into list of lists
-                aa = [[xx for xx in x] for x in a]
-                n = min(N, nCands)  # to not get index out of bounds
-                for i in range(n):  # add numbers
-                    zeroarr[cntr, i] = np.array(
-                        [row[i] for row in aa], dtype=np.float32)
-                if cntr % 10000 == 0:
-                    print(cntr, ' of ', len(nlist))
-                cntr += 1
-            return zeroarr
-
-        #neutralarr = tree2array(tree, self.pfCand_neutral_branches)
-        #neutrallist = [list(x) for x in neutralarr]
-        #x_pfCand_neutral2 = padding(neutrallist, len(self.pfCand_neutral_branches), self.npfCand_neutral, tree2array(tree, 'npfCand_neutral'))
-        #print('n done')
-        #chargedarr = tree2array(tree, self.pfCand_charged_branches)
-        #chargedlist = [list(x) for x in chargedarr]
-        #x_pfCand_charged2 = padding(chargedlist, len(self.pfCand_charged_branches), self.npfCand_charged, tree2array(tree, 'npfCand_charged'))
-        #print('c done')
-        #photonarr = tree2array(tree, self.pfCand_photon_branches)
-        #photonlist = [list(x) for x in photonarr]
-        #x_pfCand_photon2 = padding(photonlist, len(self.pfCand_photon_branches), self.npfCand_photon, tree2array(tree, 'npfCand_photon'))
-        #print('p done')
-        #electronarr = tree2array(tree, self.pfCand_electron_branches)
-        #electronlist = [list(x) for x in electronarr]
-        #x_pfCand_electron2 = padding(electronlist, len(self.pfCand_electron_branches), self.npfCand_electron, tree2array(tree, 'npfCand_electron'))
-        #print('e done')
-        #muonarr = tree2array(tree, self.pfCand_muon_branches)
-        #muonlist = [list(x) for x in muonarr]
-        #x_pfCand_muon2 = padding(muonlist, len(self.pfCand_muon_branches), self.npfCand_muon, tree2array(tree, 'npfCand_muon'))
-        #print('m done')
-        #SVarr = tree2array(tree, self.SV_branches)
-        #SVlist = [list(x) for x in SVarr]
-        #x_pfCand_SV2 = padding(SVlist, len(self.SV_branches), self.nSV, tree2array(tree, 'nSV'))
-        #print('s done')
-        #print('done padding '+ filename)
 
         x_global = MeanNormZeroPad(filename, None,  # 2nd argument None: should mean no Normalisation (makes sense, because how would the first file know of the normalisation of the last one?)
                                    [self.global_branches],
@@ -298,6 +246,23 @@ class TrainDataDeepDisplacedLepton(TrainData):
         x_pfCand_neutral = MeanNormZeroPadParticles(filename, None,
                                                     self.pfCand_neutral_branches,
                                                     self.npfCand_neutral, self.nsamples)
+        try:
+            print("this is for v3 unbalanced")
+            print("x global shape is {}".format(x_global.shape))
+            print("x pfCand neutral shape is {}".format(x_pfCand_neutral.shape))    
+            # for the first file and for the second file: (shapes)
+            # x_globa: (185, 25)    x_pfCand_neutral: (185, 10, 7) 
+            # x_globa: (234, 25)    x_pfCand_neutral: (234, 10, 7)
+            # Explaination:
+            # in the first file we have 185 leptons and 25 global features for them
+            # we make an array with max 10 neutral cand (fill the rest with zeros if 
+            # we have less than 10 neutral candidates) and for the neutral candidates
+            # we have 7 features.
+
+        except:
+            pass
+        #print("x_global is (we called meannormzeropad) {}".format(x_global))
+        #print("x_pfCand_neutral is {}".format(x_pfCand_neutral))
         x_pfCand_charged = MeanNormZeroPadParticles(filename, None,
                                                     self.pfCand_charged_branches,
                                                     self.npfCand_charged, self.nsamples)
@@ -318,18 +283,20 @@ class TrainDataDeepDisplacedLepton(TrainData):
                                                self.SV_branches,
                                                self.nSV, self.nsamples)
 
-        #import uproot3 as uproot
-        #urfile       = uproot.open(filename)["tree"]
-        #truth_arrays = urfile.arrays(self.truth_branches)
-        #truth        = reduceTruth(truth_arrays)
-        # truth        = truth.astype(dtype='float32', order='C') #important, float32 and C-type!
 
         import uproot3 as uproot
         urfile = uproot.open(filename)["tree"]
+        # WRITE AS FUNCTION OF THE TRUTH BRANCHES
         truth = np.concatenate([np.expand_dims(urfile.array("lep_isPromptId_Training"), axis=1),
-                                np.expand_dims(urfile.array(
-                                    "lep_isNonPromptId_Training"), axis=1),
-                                np.expand_dims(urfile.array("lep_isFakeId_Training"), axis=1)], axis=1)
+                                np.expand_dims(urfile.array("lep_isNonPromptId_Training"), axis=1),
+                                np.expand_dims(urfile.array("lep_isFakeId_Training"), axis=1),
+                                np.expand_dims(urfile.array("lep_isFromSUSY_Training"), axis=1),
+                                np.expand_dims(urfile.array("lep_isFromSUSYHF_Training"), axis=1),], axis=1)
+
+        # print("the truth shape is {}".format(truth.shape))
+        # the truth shape is (185, 5) in the first file and
+        # (234, 5) in the second file
+
         # important, float32 and C-type!
         truth = truth.astype(dtype='float32', order='C')
 
@@ -347,7 +314,7 @@ class TrainDataDeepDisplacedLepton(TrainData):
             b.extend(self.truth_branches)
             b.extend(self.undefTruth)
             fileTimeOut(filename, 120)
-            for_remove = root2array(
+            for_remove = root2array( # gives a structured np array
                 filename,
                 treename="tree",
                 stop=None,
@@ -364,6 +331,21 @@ class TrainDataDeepDisplacedLepton(TrainData):
         if self.remove:
             # print('remove')
             print("notremoves", notremoves, "<- notremoves")
+            # the lenght of this 'array' is 185 for the first file
+            # so we decide whether we take the lep or not
+#           notremoves [0. 1. 0. 1. 0. 1. 1. 1. 1. 1. 0. 0. 0. 0. 0. 0. 1. 1. 1. 0. 1. 0. 0. 1.
+#            1. 1. 1. 1. 1. 0. 1. 1. 0. 1. 1. 0. 1. 0. 0. 1. 1. 1. 1. 1. 1. 0. 1. 0.
+#            1. 0. 1. 0. 1. 0. 0. 1. 0. 0. 1. 0. 1. 1. 1. 0. 0. 1. 0. 1. 0. 0. 1. 1.
+#            0. 1. 0. 0. 0. 1. 1. 1. 1. 0. 1. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 1. 1. 0.
+#            1. 0. 1. 1. 1. 1. 0. 1. 0. 1. 1. 1. 1. 1. 0. 1. 1. 1. 0. 1. 0. 1. 1. 1.
+#            0. 0. 0. 0. 0. 0. 0. 1. 1. 0. 1. 0. 1. 1. 0. 1. 1. 1. 0. 0. 1. 1. 0. 1.
+#            0. 1. 1. 1. 1. 0. 1. 1. 1. 0. 0. 1. 1. 1. 1. 1. 1. 0. 0. 0. 1. 1. 0. 1.
+#            0. 1. 0. 1. 1. 0. 1. 1. 0. 1. 0. 0. 0. 0. 0. 1. 1.] <- notremoves
+#           reduced content to  55 %
+#           
+
+
+
             x_global = x_global[notremoves > 0]
             x_pfCand_neutral = x_pfCand_neutral[notremoves > 0]
             x_pfCand_charged = x_pfCand_charged[notremoves > 0]
@@ -401,176 +383,75 @@ class TrainDataDeepDisplacedLepton(TrainData):
 
     # defines how to write out the prediction
     def writeOutPrediction(self, predicted, features, truth, weights, outfilename, inputfile):
+        print("pred started")
+        # import os
         # predicted will be a list
 
+        if self.firstfilepred:
+            self.firstfilepred = False
+            print("Investigating predicted:")
+            print("len = {}".format(len(predicted)))
+            for i in range(len(predicted)):
+                print("shape and type of ith element: {}, {}".format(predicted[i].shape, type(predicted[i])))
+                # print("np dtype: {}".format(np.dtype(predicted[i])))
+            print("Investigating features:")
+            print("len = {}".format(len(features)))
+            for i in range(len(features)):
+                print("shape and type of ith element: {}, {}".format(features[i].shape, type(features[i])))
+            
+            print("Investigating truth:")
+            print("len = {}".format(len(truth)))
+            for i in range(len(truth)):
+                print("shape and type of ith element: {}, {}".format(truth[i].shape, type(truth[i])))
+
+            print("Investigating weights:")
+            print("len = {}".format(len(weights)))
+            for i in range(len(weights)):
+                print("shape and type of ith element: {}, {}".format(weights[i].shape, type(weights[i])))
+            
+            # np.set_printoptions(threshold=np.inf)
+            nleps = len(predicted[0][:,0])
+            printmaxleps = 100
+            fname, fext = os.path.splitext(outfilename)
+            with open("{}_prediction.txt".format(fname), 'w') as f:
+                f.write("{:-^35s}|{:-^35s}\n".format("Prediction", "Truth"))
+                # print("{:-^35s}|{:-^35s}".format("Prediction", "Truth"))
+                for i in range(nleps if nleps<printmaxleps else printmaxleps):
+                    pred_str = "{0[0]:^3.2f}, {0[1]:^3.2f}, {0[2]:^3.2f}, {0[3]:^3.2f}, {0[4]:^3.2f}".format(predicted[0][i,:])
+                    truth_str = "{0[0]:^5.0f}, {0[1]:^5.0f}, {0[2]:^5.0f}, {0[3]:^5.0f}, {0[4]:^5.0f}".format(truth[0][i,:])
+                    f.write("{:^35s}|{:^35s}\n".format(pred_str, truth_str))
+                    #print("{:^35s}|{:^35s}".format(pred_str, truth_str))
+
+            # Investigating predicted:
+            # len = 1
+            # shape and type of ith element: (254, 5), <class 'numpy.ndarray'>
+            # Investigating features:
+            # len = 7
+            # shape and type of ith element: (254, 25), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 10, 7), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 80, 18), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 50, 7), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 4, 18), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 6, 18), <class 'numpy.ndarray'>
+            # shape and type of ith element: (254, 10, 16), <class 'numpy.ndarray'>
+            # Investigating truth:
+            # len = 1
+            # shape and type of ith element: (254, 5), <class 'numpy.ndarray'>
+            # Investigating weights:
+            # len = 0
+
+
+
+
+        # print("predicted: {}".format(predicted))
+        # print("features: {}".format(features))
+        # print("truth: {}".format(truth))
+        # print("weights: {}".format(weights))
+        # raise NotImplemented("check the code before running")
         from root_numpy import array2root
-        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, 0:2].transpose())),
-                                         names='prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_isFromSUSY, lep_pt, lep_eta')
+        # from numpy source code:
+        # Record arrays allow us to access fields as properties: -> out.x, when before out['x'] (structured arrays)
+        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, 0:2].transpose())), names='prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_isFromSUSY, prob_isFromSUSYHF, lep_pt, lep_dxy')
         array2root(out, outfilename, 'tree')
 
 
-#    def readTreeFromRootToTuple(self, filenames, limit=None, branches=None):
-#        '''
-#        To be used to get the initial tupel for further processing in inherting classes
-#        Makes sure the number of entries is properly set
-#
-#        can also read a list of files (e.g. to produce weights/removes from larger statistics
-#        (not fully tested, yet)
-#        '''
-#
-#        if branches is None or len(branches) == 0:
-#            return np.array([],dtype='float32')
-#
-#        #print(branches)
-#        #remove duplicates
-#        usebranches=list(set(branches))
-#        tmpbb=[]
-#        for b in usebranches:
-#            if len(b):
-#                tmpbb.append(b)
-#        usebranches=tmpbb
-#
-#        import ROOT
-#        from root_numpy import tree2array, root2array
-#        if isinstance(filenames, list):
-#            for f in filenames:
-#                fileTimeOut(f,120)
-#            print('add files')
-#            nparray = root2array(
-#                filenames,
-#                treename = "tree",
-#                stop = limit,
-#                branches = usebranches
-#                )
-#            print('done add files')
-#            return nparray
-#            print('add files')
-#        else:
-#            fileTimeOut(filenames,120) #give eos a minute to recover
-#            rfile = ROOT.TFile(filenames)
-#            tree = rfile.Get(self.treename)
-#            if not self.nsamples:
-#                self.nsamples=tree.GetEntries()
-#            nparray = tree2array(tree, stop=limit, branches=usebranches)
-#            return nparray
-#
-#    def createWeighterObjects(self, allsourcefiles):
-#        #
-#        # Calculates the weights needed for flattening the pt/eta spectrum
-#
-#        from DeepJetCore.Weighter import Weighter
-#        weighter = Weighter()
-#        weighter.undefTruth = self.undefTruth
-#        weighter.class_weights = self.class_weights
-#        branches = [self.weightbranchX,self.weightbranchY]
-#        branches.extend(self.truth_branches)
-#
-#        if self.remove:
-#            weighter.setBinningAndClasses(
-#                [self.weight_binX,self.weight_binY],
-#                self.weightbranchX,self.weightbranchY,
-#                self.truth_branches, self.red_classes,
-#                self.truth_red_fusion, method = self.referenceclass
-#            )
-#
-#        counter=0
-#        import ROOT
-#        from root_numpy import tree2array, root2array
-#        if self.remove:
-#            for fname in allsourcefiles:
-#                fileTimeOut(fname, 120)
-#                nparray = root2array(
-#                    fname,
-#                    treename = "tree",
-#                    stop = None,
-#                    branches = branches
-#                )
-#                norm_hist = True
-#                if self.referenceclass == 'flatten':
-#                    norm_hist = False
-#                weighter.addDistributions(nparray, norm_h = norm_hist)
-#                #del nparray
-#                counter=counter+1
-#            weighter.createRemoveProbabilitiesAndWeights(self.referenceclass)
-#
-#        print("calculate means")
-#        from DeepJetCore.preprocessing import meanNormProd
-#        nparray = self.readTreeFromRootToTuple(allsourcefiles,branches=self.global_branches+self.pfCand_neutral_branches+self.pfCand_charged_branches+self.pfCand_photon_branches+self.pfCand_electron_branches+self.pfCand_muon_branches+self.SV_branches, limit=500000)
-#        for a in (self.global_branches+self.pfCand_neutral_branches+self.pfCand_charged_branches+self.pfCand_photon_branches+self.pfCand_electron_branches+self.pfCand_muon_branches+self.SV_branches):
-#            for b in range(len(nparray[a])):
-#                nparray[a][b] = np.where(np.logical_and(np.isfinite(nparray[a][b]),np.abs(nparray[a][b]) < 100000.0), nparray[a][b], 0)
-#        means = np.array([],dtype='float32')
-#        if len(nparray):
-#            means = meanNormProd(nparray)
-#        return {'weigther':weighter,'means':means}
-#
-#    def convertFromSourceFile(self, filename, weighterobjects, istraining):
-#
-#        # Function to produce the numpy training arrays from root files
-#
-#        from DeepJetCore.Weighter import Weighter
-#        from DeepJetCore.stopwatch import stopwatch
-#        sw=stopwatch()
-#        swall=stopwatch()
-#        if not istraining:
-#            self.remove = False
-#
-#        def reduceTruth(uproot_arrays):
-#            p   = uproot_arrays[b'lep_isPromptId_Training']
-#            np  = uproot_arrays[b'lep_isNonPromptId_Training']
-#            f   = uproot_arrays[b'lep_isFakeId_Training']
-#
-#            return np.vstack((p, np, f)).transpose()
-#
-#        print('reading '+filename)
-#
-#        import ROOT
-#        from root_numpy import tree2array, root2array
-#        fileTimeOut(filename,120) #give eos a minute to recover
-#        rfile = ROOT.TFile(filename)
-#        tree = rfile.Get("tree")
-#        self.nsamples = tree.GetEntries()
-#        # user code, example works with the example 2D images in root format generated by make_example_data
-#        from DeepJetCore.preprocessing import MeanNormZeroPad,MeanNormZeroPadParticles
-#        x_global = MeanNormZeroPad(filename,weighterobjects['means'],
-#                                   [self.global_branches, self.pfCand_neutral_branches, self.pfCand_charged_branches, self.pfCand_photon_branches, self.pfCand_electron_branches, self.pfCand_muon_branches, self.SV_branches],
-#                                   [1,self.npfCand_neutral,self.npfCand_charged,self.npfCand_photon,self.npfCand_electron, self.npfCand_muon, self.nSV],
-# )
-#
-#        import uproot3 as uproot
-#        urfile = uproot.open(filename)["tree"]
-#        truth_arrays = urfile.arrays(self.truth_branches)
-#        truth = reduceTruth(truth_arrays)
-#        truth = truth.astype(dtype='float32', order='C') #important, float32 and C-type!
-#
-#        x_global = x_global.astype(dtype='float32', order='C')
-#
-#        if self.remove:
-#            b = [self.weightbranchX,self.weightbranchY]
-#            b.extend(self.truth_branches)
-#            b.extend(self.undefTruth)
-#            fileTimeOut(filename, 120)
-#            for_remove = root2array(
-#                filename,
-#                treename = "tree",
-#                stop = None,
-#                branches = b
-#            )
-#            notremoves=weighterobjects['weigther'].createNotRemoveIndices(for_remove)
-#            #undef=for_remove['isUndefined']
-#            #notremoves-=undef
-#            print('took ', sw.getAndReset(), ' to create remove indices')
-#
-#        if self.remove:
-#            print('remove')
-#            x_global=x_global[notremoves > 0]
-#            truth=truth[notremoves > 0]
-#
-#        newnsamp=x_global.shape[0]
-#        print('reduced content to ', int(float(newnsamp)/float(self.nsamples)*100),'%')
-#
-#        print('remove nans')
-#        x_global = np.where(np.logical_and(np.isfinite(x_global), (np.abs(x_global) < 100000.0)), x_global, 0)
-#        return [x_global], [truth], []
-#
-#
