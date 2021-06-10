@@ -28,7 +28,7 @@ class TrainDataDeepDisplacedLepton(TrainData):
         self.undefTruth = []
         self.weightbranchX = 'lep_pt'
         self.weightbranchY = 'lep_dxy'
-        self.remove = True
+        self.remove = False
         self.referenceclass = 'lep_isFromSUSY_Training' # later maybe lep_isFromSUSYandHF_Training
         # setting DeepLepton specific defaults
         self.treename = "tree"
@@ -52,7 +52,8 @@ class TrainDataDeepDisplacedLepton(TrainData):
         
         # consicer num=20 or higher?
         self.weight_binY = np.linspace(start=-5, stop=5, num=10, endpoint=True, dtype=float)
-
+        
+        # if training not flat in pt, eta, ... maybe remove them..
         self.global_branches = [
             'lep_pt',                   # 0 
             'lep_eta',                  # 1
@@ -393,17 +394,17 @@ class TrainDataDeepDisplacedLepton(TrainData):
             print("len = {}".format(len(predicted)))
             for i in range(len(predicted)):
                 print("shape and type of ith element: {}, {}".format(predicted[i].shape, type(predicted[i])))
-                # print("np dtype: {}".format(np.dtype(predicted[i])))
+                # print("np dtype: {}".format(predicted[i].dtype)) not a structured array
             print("Investigating features:")
             print("len = {}".format(len(features)))
             for i in range(len(features)):
                 print("shape and type of ith element: {}, {}".format(features[i].shape, type(features[i])))
-            
+                # print("dtype of features: {}".format(features[i].dtype)) not a structured array
             print("Investigating truth:")
             print("len = {}".format(len(truth)))
             for i in range(len(truth)):
                 print("shape and type of ith element: {}, {}".format(truth[i].shape, type(truth[i])))
-
+                # print("dtype: {}".format(truth[i].dtype)) -> float so its not a structured array
             print("Investigating weights:")
             print("len = {}".format(len(weights)))
             for i in range(len(weights)):
@@ -411,17 +412,23 @@ class TrainDataDeepDisplacedLepton(TrainData):
             
             # np.set_printoptions(threshold=np.inf)
             nleps = len(predicted[0][:,0])
-            printmaxleps = 100
+            printmaxleps = 50
             fname, fext = os.path.splitext(outfilename)
             with open("{}_prediction.txt".format(fname), 'w') as f:
-                f.write("{:-^35s}|{:-^35s}\n".format("Prediction", "Truth"))
-                # print("{:-^35s}|{:-^35s}".format("Prediction", "Truth"))
+                f.write("{:-^60s}|{:-^60s}\n".format("Prediction", "Truth"))
+                # print("{:-^60s}|{:-^60s}".format("Prediction", "Truth"))
+                tempstring = ""
+                for label in self.truth_branches:
+                    tempstring+="{:^12s}".format( (label.replace("lep_is", "")).replace("_Training", ""))
+                f.write("{0:^60s}|{0:^60s}\n".format(tempstring))
+                f.write("{:-^121}\n".format(""))
                 for i in range(nleps if nleps<printmaxleps else printmaxleps):
-                    pred_str = "{0[0]:^3.2f}, {0[1]:^3.2f}, {0[2]:^3.2f}, {0[3]:^3.2f}, {0[4]:^3.2f}".format(predicted[0][i,:])
-                    truth_str = "{0[0]:^5.0f}, {0[1]:^5.0f}, {0[2]:^5.0f}, {0[3]:^5.0f}, {0[4]:^5.0f}".format(truth[0][i,:])
-                    f.write("{:^35s}|{:^35s}\n".format(pred_str, truth_str))
-                    #print("{:^35s}|{:^35s}".format(pred_str, truth_str))
+                    pred_str = "{0[0]:^10.2f}, {0[1]:^10.2f}, {0[2]:^10.2f}, {0[3]:^10.2f}, {0[4]:^10.2f}".format(predicted[0][i,:])
+                    truth_str = "{0[0]:^10.0f}, {0[1]:^10.0f}, {0[2]:^10.0f}, {0[3]:^10.0f}, {0[4]:^10.0f}".format(truth[0][i,:])
+                    f.write("{:^60s}|{:^60s}\n".format(pred_str, truth_str))
+                    # print("{:^60s}|{:^60s}".format(pred_str, truth_str))
 
+            # raise NotImplemented("stop you here")
             # Investigating predicted:
             # len = 1
             # shape and type of ith element: (254, 5), <class 'numpy.ndarray'>
@@ -451,7 +458,14 @@ class TrainDataDeepDisplacedLepton(TrainData):
         from root_numpy import array2root
         # from numpy source code:
         # Record arrays allow us to access fields as properties: -> out.x, when before out['x'] (structured arrays)
-        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, 0:2].transpose())), names='prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_isFromSUSY, prob_isFromSUSYHF, lep_pt, lep_dxy')
+        namesstring = 'prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_isFromSUSY, prob_isFromSUSYHF,'
+        for label in self.truth_branches:
+            namesstring += label + ', '
+        namesstring += 'lep_pt, lep_dxy'
+        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, [0,6]].transpose())), names=namesstring)
+        print("Information about out array:")
+        print("dtype is {}".format(out.dtype))
+        print("shape is {}".format(out.shape))
         array2root(out, outfilename, 'tree')
 
 
