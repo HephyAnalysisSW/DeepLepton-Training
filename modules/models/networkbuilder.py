@@ -157,16 +157,28 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
     """
     if layout == None:
         raise NotImplementedError
+
+    NoCands = False # use PfCandidates if False
+    try:
+        if layout["NoCands"]:
+            NoCands = True
+        else:
+            NoCands = False
+    except:
+        pass
+    
     globalvars = BatchNormalization(momentum=momentum,name='globals_input_batchnorm') (Inputs[0]) # Lepton vars
-    npf    =     BatchNormalization(momentum=momentum,name='npf_input_batchnorm')     (Inputs[1]) # neutral
-    cpf    =     BatchNormalization(momentum=momentum,name='cpf_input_batchnorm')     (Inputs[2]) # charged
-    ppf    =     BatchNormalization(momentum=momentum,name='ppf_input_batchnorm')     (Inputs[3]) # photon
-    epf    =     BatchNormalization(momentum=momentum,name='epf_input_batchnorm')     (Inputs[4]) # electron
-    mpf    =     BatchNormalization(momentum=momentum,name='mpf_input_batchnorm')     (Inputs[5]) # muon
-    vtx    =     BatchNormalization(momentum=momentum,name='vtx_input_batchnorm')     (Inputs[6]) # SV
+    if not NoCands:
+        print("using Cands")
+        npf    =     BatchNormalization(momentum=momentum,name='npf_input_batchnorm')     (Inputs[1]) # neutral
+        cpf    =     BatchNormalization(momentum=momentum,name='cpf_input_batchnorm')     (Inputs[2]) # charged
+        ppf    =     BatchNormalization(momentum=momentum,name='ppf_input_batchnorm')     (Inputs[3]) # photon
+        epf    =     BatchNormalization(momentum=momentum,name='epf_input_batchnorm')     (Inputs[4]) # electron
+        mpf    =     BatchNormalization(momentum=momentum,name='mpf_input_batchnorm')     (Inputs[5]) # muon
+        vtx    =     BatchNormalization(momentum=momentum,name='vtx_input_batchnorm')     (Inputs[6]) # SV
     
-    if layout["mode"] == "Dense":
-        npf, cpf, ppf, epf, mpf, vtx = makeDense(neutral=npf, 
+        if layout["mode"] == "Dense":
+            npf, cpf, ppf, epf, mpf, vtx = makeDense(neutral=npf, 
                                                  charged=cpf, 
                                                  photon=ppf, 
                                                  electron=epf, 
@@ -176,8 +188,8 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
                                                  dropoutRate=dropoutRate, 
                                                  batchnorm=True, 
                                                  batchmomentum=momentum)
-    elif layout["mode"] == "CNN":
-        npf, cpf, ppf, epf, mpf, vtx = makeCNN(neutral=npf, 
+        elif layout["mode"] == "CNN":
+            npf, cpf, ppf, epf, mpf, vtx = makeCNN(neutral=npf, 
                                                  charged=cpf, 
                                                  photon=ppf, 
                                                  electron=epf, 
@@ -187,47 +199,47 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
                                                  dropoutRate=dropoutRate, 
                                                  batchnorm=True, 
                                                  batchmomentum=momentum)
-    else:
-        raise NotImplementedError("Implement this Layer type!")
+        else:
+            raise NotImplementedError("Implement this Layer type!")
 
-    # LSTMs:
-    npf = Bidirectional(LSTM(50,implementation=2, name='npf_lstm'), merge_mode='concat')(npf)
-    npf = BatchNormalization(momentum=momentum,name='npflstm_batchnorm')(npf)
-    npf = Dropout(dropoutRate)(npf)
+        # LSTMs:
+        npf = Bidirectional(LSTM(50,implementation=2, name='npf_lstm'), merge_mode='concat')(npf)
+        npf = BatchNormalization(momentum=momentum,name='npflstm_batchnorm')(npf)
+        npf = Dropout(dropoutRate)(npf)
                 
-    cpf = Bidirectional(LSTM(150,implementation=2, name='cpf_lstm'), merge_mode='concat')(cpf)
-    cpf = BatchNormalization(momentum=momentum,name='cpflstm_batchnorm')(cpf)
-    cpf = Dropout(dropoutRate)(cpf)
+        cpf = Bidirectional(LSTM(150,implementation=2, name='cpf_lstm'), merge_mode='concat')(cpf)
+        cpf = BatchNormalization(momentum=momentum,name='cpflstm_batchnorm')(cpf)
+        cpf = Dropout(dropoutRate)(cpf)
                                 
-    ppf = Bidirectional(LSTM(50,implementation=2, name='ppf_lstm'), merge_mode='concat')(ppf)
-    ppf = BatchNormalization(momentum=momentum,name='ppflstm_batchnorm')(ppf)
-    ppf = Dropout(dropoutRate)(ppf)
+        ppf = Bidirectional(LSTM(50,implementation=2, name='ppf_lstm'), merge_mode='concat')(ppf)
+        ppf = BatchNormalization(momentum=momentum,name='ppflstm_batchnorm')(ppf)
+        ppf = Dropout(dropoutRate)(ppf)
                                                     
-    epf = Bidirectional(LSTM(50,implementation=2, name='epf_lstm'), merge_mode='concat')(epf)
-    epf = BatchNormalization(momentum=momentum,name='epflstm_batchnorm')(epf)
-    epf = Dropout(dropoutRate)(epf)
+        epf = Bidirectional(LSTM(50,implementation=2, name='epf_lstm'), merge_mode='concat')(epf)
+        epf = BatchNormalization(momentum=momentum,name='epflstm_batchnorm')(epf)
+        epf = Dropout(dropoutRate)(epf)
                                                                 
-    mpf = Bidirectional(LSTM(50,implementation=2, name='mpf_lstm'), merge_mode='concat')(mpf)
-    mpf = BatchNormalization(momentum=momentum,name='mpflstm_batchnorm')(mpf)
-    mpf = Dropout(dropoutRate)(mpf)
+        mpf = Bidirectional(LSTM(50,implementation=2, name='mpf_lstm'), merge_mode='concat')(mpf)
+        mpf = BatchNormalization(momentum=momentum,name='mpflstm_batchnorm')(mpf)
+        mpf = Dropout(dropoutRate)(mpf)
                                                                                 
-    vtx = Bidirectional(LSTM(150,implementation=2, name='vtx_lstm'), merge_mode='concat')(vtx)
-    vtx = BatchNormalization(momentum=momentum,name='vtxlstm_batchnorm')(vtx)
-    vtx = Dropout(dropoutRate)(vtx)
+        vtx = Bidirectional(LSTM(150,implementation=2, name='vtx_lstm'), merge_mode='concat')(vtx)
+        vtx = BatchNormalization(momentum=momentum,name='vtxlstm_batchnorm')(vtx)
+        vtx = Dropout(dropoutRate)(vtx)
 
     
-    # Join pfCands and SV
-    xCands   = Concatenate()( [npf, cpf, ppf, epf, mpf, vtx] )
+        # Join pfCands and SV
+        xCands   = Concatenate()( [npf, cpf, ppf, epf, mpf, vtx] )
+    
+        if layout["cands"] != None:
+            ctr = 0
+            for N in layout["cands"]:
+                xCands = Dense(N, activation=layout["activation"], kernel_initializer="lecun_uniform", name="cands_Dense"+str(ctr))(xCands)
+                xCands = BatchNormalization(momentum=momentum,name="cands_dense_batchnorm"+str(ctr))(xCands)
+                xCands = Dropout(dropoutRate, name="cands_dense_dropout"+str(ctr))(xCands)
+                ctr += 1
+    
     xGlobals = globalvars
-    
-    if layout["cands"] != None:
-        ctr = 0
-        for N in layout["cands"]:
-            xCands = Dense(N, activation=layout["activation"], kernel_initializer="lecun_uniform", name="cands_Dense"+str(ctr))(xCands)
-            xCands = BatchNormalization(momentum=momentum,name="cands_dense_batchnorm"+str(ctr))(xCands)
-            xCands = Dropout(dropoutRate, name="cands_dense_dropout"+str(ctr))(xCands)
-            ctr += 1
-    
     if layout["leptonStart"] != None:
         ctr = 0
         for N in layout["leptonStart"]:
@@ -237,7 +249,10 @@ def buildModel(Inputs, layout=None, dropoutRate=0.5, momentum=0.2):
             ctr += 1
 
     # Join Cands and Global(lepton vars):
-    x = Concatenate()( [xGlobals,xCands] )
+    if not NoCands:
+        x = Concatenate()( [xGlobals,xCands] )
+    else:
+        x = xGlobals
 
     # Last part of Dense Layers
     
