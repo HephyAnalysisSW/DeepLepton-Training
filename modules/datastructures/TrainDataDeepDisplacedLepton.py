@@ -2,8 +2,8 @@ from DeepJetCore.TrainData import TrainData
 from DeepJetCore.TrainData import fileTimeOut as tdfto
 import numpy as np
 import os
-# set tree name to use
 import DeepJetCore.preprocessing
+# set tree name to use
 DeepJetCore.preprocessing.setTreeName('tree')
 
 
@@ -11,7 +11,7 @@ def fileTimeOut(fileName, timeOut):
     tdfto(fileName, timeOut)
 
 
-class TrainDataDeepDisplacedLepton(TrainData):
+class TrainDataDeepDisplacedLepton_dxy(TrainData):
     '''
     Base class for DeepLepton Training Data.
     '''
@@ -20,40 +20,36 @@ class TrainDataDeepDisplacedLepton(TrainData):
         TrainData.__init__(self)
 
         self.description = "DeepLepton training datastructure"
+        # Define the four truth labels, should be consistent with
+        # Network architecture, i.e. the output layer.
         self.truth_branches = ['lep_isPromptId_Training',
                                'lep_isNonPromptId_Training',
                                'lep_isFakeId_Training',
-                               'lep_isFromSUSY_Training',
-                               'lep_isFromSUSYHF_Training',]  # 'lep_isFromSUSYHF_Training'
+                               'lep_isFromSUSYandHF_Training']
+                              #  'lep_isFromSUSY_Training',
+                              #  'lep_isFromSUSYHF_Training',]  
         self.undefTruth = []
-        self.weightbranchX = 'lep_pt'
+        # The Weighter can "weight" two lepton features.
+        # Here we only "weight" the dxy feature by making only one bin in eta
+        # "weight" means to throw away leptons from the non reference class s.t.
+        # weightbranchX/Y gets similarly distributed as the reference class
+        self.weightbranchX = 'lep_eta' 
         self.weightbranchY = 'lep_dxy'
-        self.remove = False
-        self.referenceclass = 'lep_isFromSUSY_Training' # later maybe lep_isFromSUSYandHF_Training
+        # enables or disables (False) Weighter
+        self.remove = True
+        # Define the reference class
+        self.referenceclass = 'lep_isFromSUSYandHF_Training' 
         # setting DeepLepton specific defaults
         self.treename = "tree"
-        self.firstfilepred = True
-        # self.undefTruth=['isUndefined']
-        #self.red_classes      = ['cat_P', 'cat_NP', 'cat_F']
-        #self.reduce_truth     = ['lep_isPromptId_Training', 'lep_isNonPromptId_Training', 'lep_isFakeId_Training']
-        #self.class_weights    = [1.00, 1.00, 1.00]
 
-        self.weight_binX = np.array([
-            5, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30, 35, 40, 45, 50, 60, 75, 100,
-            125, 150, 175, 200, 250, 300, 400, 500,
-            600, 2000], dtype=float)
-        #self.weight_binX = np.geomspace(3.5, 2000, 30)
-
-        # for lep_eta it was:
-        # self.weight_binY = np.array(
-        #     [-2.5, -2., -1.5, -1., -0.5, 0.5, 1, 1.5, 2., 2.5],
-        #     dtype=float
-        # )
+        # make one huge bin for eta
+        self.weight_binX = np.array([-30, 30])
+        # make the extension large enough to cover the whole feature range of the 
+        # leptons in the non-reference class
+        self.weight_binY = np.linspace(start=-50, stop=50, num=50, endpoint=True, dtype=float)
         
-        # consicer num=20 or higher?
-        self.weight_binY = np.linspace(start=-5, stop=5, num=10, endpoint=True, dtype=float)
-        
-        # if training not flat in pt, eta, ... maybe remove them..
+        # if training not flat in pt, eta one could remove the
+        # feature from the training as well
         self.global_branches = [
             'lep_pt',                   # 0 
             'lep_eta',                  # 1
@@ -178,15 +174,16 @@ class TrainDataDeepDisplacedLepton(TrainData):
         self.nSV = 10
 
     def createWeighterObjects(self, allsourcefiles):
-        #
         # Calculates the weights needed for flattening the pt/eta spectrum
+        # by initializing a Weighter instance
 
         from DeepJetCore.Weighter import Weighter
         weighter = Weighter()
         weighter.undefTruth = self.undefTruth
         branches = [self.weightbranchX, self.weightbranchY]
         branches.extend(self.truth_branches)
-
+        
+        # if one uses the Weighter
         if self.remove:
             weighter.setBinningAndClasses(
                 [self.weight_binX,  self.weight_binY],
@@ -211,7 +208,6 @@ class TrainDataDeepDisplacedLepton(TrainData):
                 if self.referenceclass == 'flatten':
                     norm_hist = False
                 weighter.addDistributions(nparray, norm_h=norm_hist)
-                #del nparray
                 counter = counter+1
             weighter.createRemoveProbabilitiesAndWeights(self.referenceclass)
         return {'weigther': weighter}
@@ -240,30 +236,14 @@ class TrainDataDeepDisplacedLepton(TrainData):
 
         print('padding '+filename)
 
-        x_global = MeanNormZeroPad(filename, None,  # 2nd argument None: should mean no Normalisation (makes sense, because how would the first file know of the normalisation of the last one?)
+        x_global = MeanNormZeroPad(filename, None,  # 2nd argument None: means no normalisation 
                                    [self.global_branches],
                                    [1], self.nsamples)
 
         x_pfCand_neutral = MeanNormZeroPadParticles(filename, None,
                                                     self.pfCand_neutral_branches,
                                                     self.npfCand_neutral, self.nsamples)
-        try:
-            print("this is for v3 unbalanced")
-            print("x global shape is {}".format(x_global.shape))
-            print("x pfCand neutral shape is {}".format(x_pfCand_neutral.shape))    
-            # for the first file and for the second file: (shapes)
-            # x_globa: (185, 25)    x_pfCand_neutral: (185, 10, 7) 
-            # x_globa: (234, 25)    x_pfCand_neutral: (234, 10, 7)
-            # Explaination:
-            # in the first file we have 185 leptons and 25 global features for them
-            # we make an array with max 10 neutral cand (fill the rest with zeros if 
-            # we have less than 10 neutral candidates) and for the neutral candidates
-            # we have 7 features.
 
-        except:
-            pass
-        #print("x_global is (we called meannormzeropad) {}".format(x_global))
-        #print("x_pfCand_neutral is {}".format(x_pfCand_neutral))
         x_pfCand_charged = MeanNormZeroPadParticles(filename, None,
                                                     self.pfCand_charged_branches,
                                                     self.npfCand_charged, self.nsamples)
@@ -287,16 +267,11 @@ class TrainDataDeepDisplacedLepton(TrainData):
 
         import uproot3 as uproot
         urfile = uproot.open(filename)["tree"]
-        # WRITE AS FUNCTION OF THE TRUTH BRANCHES
-        truth = np.concatenate([np.expand_dims(urfile.array("lep_isPromptId_Training"), axis=1),
-                                np.expand_dims(urfile.array("lep_isNonPromptId_Training"), axis=1),
-                                np.expand_dims(urfile.array("lep_isFakeId_Training"), axis=1),
-                                np.expand_dims(urfile.array("lep_isFromSUSY_Training"), axis=1),
-                                np.expand_dims(urfile.array("lep_isFromSUSYHF_Training"), axis=1),], axis=1)
 
-        # print("the truth shape is {}".format(truth.shape))
-        # the truth shape is (185, 5) in the first file and
-        # (234, 5) in the second file
+        mytruth = []
+        for arr in self.truth_branches:
+            mytruth.append(np.expand_dims(urfile.array(arr), axis=1))
+        truth = np.concatenate(mytruth, axis = 1)
 
         # important, float32 and C-type!
         truth = truth.astype(dtype='float32', order='C')
@@ -315,7 +290,7 @@ class TrainDataDeepDisplacedLepton(TrainData):
             b.extend(self.truth_branches)
             b.extend(self.undefTruth)
             fileTimeOut(filename, 120)
-            for_remove = root2array( # gives a structured np array
+            for_remove = root2array( # returns a structured np array
                 filename,
                 treename="tree",
                 stop=None,
@@ -323,29 +298,9 @@ class TrainDataDeepDisplacedLepton(TrainData):
             )
             notremoves = weighterobjects['weigther'].createNotRemoveIndices(
                 for_remove)
-            # undef=for_remove['isUndefined']
-            # notremoves-=undef
             print('took ', sw.getAndReset(), ' to create remove indices')
-            # if counter_all == 0:
-            #    notremoves = list(np.ones(np.shape(notremoves)))
 
         if self.remove:
-            # print('remove')
-            print("notremoves", notremoves, "<- notremoves")
-            # the lenght of this 'array' is 185 for the first file
-            # so we decide whether we take the lep or not
-#           notremoves [0. 1. 0. 1. 0. 1. 1. 1. 1. 1. 0. 0. 0. 0. 0. 0. 1. 1. 1. 0. 1. 0. 0. 1.
-#            1. 1. 1. 1. 1. 0. 1. 1. 0. 1. 1. 0. 1. 0. 0. 1. 1. 1. 1. 1. 1. 0. 1. 0.
-#            1. 0. 1. 0. 1. 0. 0. 1. 0. 0. 1. 0. 1. 1. 1. 0. 0. 1. 0. 1. 0. 0. 1. 1.
-#            0. 1. 0. 0. 0. 1. 1. 1. 1. 0. 1. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 1. 1. 0.
-#            1. 0. 1. 1. 1. 1. 0. 1. 0. 1. 1. 1. 1. 1. 0. 1. 1. 1. 0. 1. 0. 1. 1. 1.
-#            0. 0. 0. 0. 0. 0. 0. 1. 1. 0. 1. 0. 1. 1. 0. 1. 1. 1. 0. 0. 1. 1. 0. 1.
-#            0. 1. 1. 1. 1. 0. 1. 1. 1. 0. 0. 1. 1. 1. 1. 1. 1. 0. 0. 0. 1. 1. 0. 1.
-#            0. 1. 0. 1. 1. 0. 1. 1. 0. 1. 0. 0. 0. 0. 0. 1. 1.] <- notremoves
-#           reduced content to  55 %
-#           
-
-
 
             x_global = x_global[notremoves > 0]
             x_pfCand_neutral = x_pfCand_neutral[notremoves > 0]
@@ -357,17 +312,10 @@ class TrainDataDeepDisplacedLepton(TrainData):
             truth = truth[notremoves > 0]
 
         newnsamp = x_global.shape[0]
-        print('reduced content to ', int(
+        print('Weighter reduced content to ', int(
             float(newnsamp)/float(self.nsamples)*100), '%')
-        # print(x_global)
-        # print(x_pfCand_neutral)
-        # print(x_pfCand_charged)
-        # print(x_pfCand_photon)
-        # print(x_pfCand_electron)
-        # print(x_pfCand_muon)
-        # print(x_pfCand_SV)
 
-        print('remove nans')
+        print('removing nans')
         x_global = np.where(np.isfinite(x_global), x_global, 0)
         x_pfCand_neutral = np.where(np.isfinite(
             x_pfCand_neutral), x_pfCand_neutral, 0)
@@ -384,88 +332,25 @@ class TrainDataDeepDisplacedLepton(TrainData):
 
     # defines how to write out the prediction
     def writeOutPrediction(self, predicted, features, truth, weights, outfilename, inputfile):
-        print("pred started")
-        # import os
-        # predicted will be a list
-
-        if self.firstfilepred:
-            self.firstfilepred = False
-            print("Investigating predicted:")
-            print("len = {}".format(len(predicted)))
-            for i in range(len(predicted)):
-                print("shape and type of ith element: {}, {}".format(predicted[i].shape, type(predicted[i])))
-                # print("np dtype: {}".format(predicted[i].dtype)) not a structured array
-            print("Investigating features:")
-            print("len = {}".format(len(features)))
-            for i in range(len(features)):
-                print("shape and type of ith element: {}, {}".format(features[i].shape, type(features[i])))
-                # print("dtype of features: {}".format(features[i].dtype)) not a structured array
-            print("Investigating truth:")
-            print("len = {}".format(len(truth)))
-            for i in range(len(truth)):
-                print("shape and type of ith element: {}, {}".format(truth[i].shape, type(truth[i])))
-                # print("dtype: {}".format(truth[i].dtype)) -> float so its not a structured array
-            print("Investigating weights:")
-            print("len = {}".format(len(weights)))
-            for i in range(len(weights)):
-                print("shape and type of ith element: {}, {}".format(weights[i].shape, type(weights[i])))
-            
-            # np.set_printoptions(threshold=np.inf)
-            nleps = len(predicted[0][:,0])
-            printmaxleps = 50
-            fname, fext = os.path.splitext(outfilename)
-            with open("{}_prediction.txt".format(fname), 'w') as f:
-                f.write("{:-^60s}|{:-^60s}\n".format("Prediction", "Truth"))
-                # print("{:-^60s}|{:-^60s}".format("Prediction", "Truth"))
-                tempstring = ""
-                for label in self.truth_branches:
-                    tempstring+="{:^12s}".format( (label.replace("lep_is", "")).replace("_Training", ""))
-                f.write("{0:^60s}|{0:^60s}\n".format(tempstring))
-                f.write("{:-^121}\n".format(""))
-                for i in range(nleps if nleps<printmaxleps else printmaxleps):
-                    pred_str = "{0[0]:^10.2f}, {0[1]:^10.2f}, {0[2]:^10.2f}, {0[3]:^10.2f}, {0[4]:^10.2f}".format(predicted[0][i,:])
-                    truth_str = "{0[0]:^10.0f}, {0[1]:^10.0f}, {0[2]:^10.0f}, {0[3]:^10.0f}, {0[4]:^10.0f}".format(truth[0][i,:])
-                    f.write("{:^60s}|{:^60s}\n".format(pred_str, truth_str))
-                    # print("{:^60s}|{:^60s}".format(pred_str, truth_str))
-
-            # raise NotImplemented("stop you here")
-            # Investigating predicted:
-            # len = 1
-            # shape and type of ith element: (254, 5), <class 'numpy.ndarray'>
-            # Investigating features:
-            # len = 7
-            # shape and type of ith element: (254, 25), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 10, 7), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 80, 18), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 50, 7), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 4, 18), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 6, 18), <class 'numpy.ndarray'>
-            # shape and type of ith element: (254, 10, 16), <class 'numpy.ndarray'>
-            # Investigating truth:
-            # len = 1
-            # shape and type of ith element: (254, 5), <class 'numpy.ndarray'>
-            # Investigating weights:
-            # len = 0
-
-
-
-
-        # print("predicted: {}".format(predicted))
-        # print("features: {}".format(features))
-        # print("truth: {}".format(truth))
-        # print("weights: {}".format(weights))
-        # raise NotImplemented("check the code before running")
+        # predicted is a list
+        print("Prediction started")
         from root_numpy import array2root
-        # from numpy source code:
-        # Record arrays allow us to access fields as properties: -> out.x, when before out['x'] (structured arrays)
-        namesstring = 'prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_isFromSUSY, prob_isFromSUSYHF,'
+
+        namesstring = 'prob_isPrompt, prob_isNonPrompt, prob_isFake, prob_lep_isFromSUSYandHF,' #prob_isFromSUSY, prob_isFromSUSYHF,'
         for label in self.truth_branches:
             namesstring += label + ', '
-        namesstring += 'lep_pt, lep_dxy'
-        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, [0,6]].transpose())), names=namesstring)
-        print("Information about out array:")
-        print("dtype is {}".format(out.dtype))
-        print("shape is {}".format(out.shape))
+        features_string = ', '.join(self.global_branches)
+        namesstring += features_string
+        out = np.core.records.fromarrays(np.vstack((predicted[0].transpose(), truth[0].transpose(), features[0][:, :].transpose())), names=namesstring)
+
+        # if one predicts on a DataCollection one has to change 
+        # the file extension to .root
+        if not outfilename.endswith(".root"):
+            print("Predicted from a DataCollection make root files")
+            print("Note that outfiles files extensions must be adapted...")
+            filename, _ = os.path.splitext(outfilename)
+            outfilename = filename+".root"
+        print("making {}".format(outfilename.split('/')[-1]))   
         array2root(out, outfilename, 'tree')
 
 
